@@ -1,0 +1,118 @@
+MH:
+- Write JSS paper
+- Write paper 3
+- Once loon is on CRAN, do:
+  + put 'loon' in Imports (in DESCRIPTION)
+  + comment in the loon parts in NAMESPACE (see TODOs)
+  + put all files from ./misc in the corresponding directories (./man, ./R)
+  + comment in all parts in zenplot() (see TODOs in zenplot.R)
+  + comment in all parts in extract.Rd (see TODO)
+  + in zenplot.Rd:
+    - mention 'loon' as a choice for argument 'pkg'
+    - define ospace depending on 'loon' again
+    - comment in all loon parts (see TODOs)
+
+WO:
+- check plots_loon.Rd, l_ispace_config.Rd, na_omit_loon.Rd if loon functions
+  were described accurately
+- Fix/adapt intro.Rmd
+- Write paper 1
+- Fix all *_*_loon functions (see grid/graphics) for the use of 'loc' etc.
+
+Paper 1 (WO; JCGS):
+        About the zenplots in general, motivation as in intro.Rmd (mention grid, loon)
+Paper 2 (MH; Econometrics copula issue or Statistics & Risk Modeling):
+        Application to detecting dependence as in dependence.Rmd
+	=> submitted
+Paper 3 (mostly MH; JSS):
+        Describe the more specific features such as choosing your own turns
+
+Paper 4 (jointly with Mu & Avinash; JASA):
+        How to graphically determine independence between groups of variables
+        - use pobs of within-group distances of pobs of original data
+	- argue that n choose 2 many samples can also be useful if n is small
+          (easier to detect dependence in small dimensions)
+	- show numerical problems when margins of one group are 'qt(, df = 0.5)'
+	- show that the problem can be solved with the method 'canberra' of
+	  dist().
+	- show that many distances are still equal if the original data has ties
+          (rgeom()) and the distances are computed from the original data. This
+	  is better if the pobs are applied first (distances then seem to have
+	  less ties)
+        - Consider two sectors; the first column in the second sector is
+          dependent to each column of the first sector, but all columns in the
+	  first sector are independent of all but the first column of the second
+	  sector. How large can we choose the second sector so that we can still
+	  visually determine/see the dependence between the sectors?
+        - refer to Annals paper about distance correlation; does their test (see
+          'energy' package) fail in cases we can easily spot visually?
+	- maybe the theory behind can be dealt with by Christian and Bruno?
+        - maybe also applicable to vine copulas or graphical models
+Paper 5: A graphical atlas of copulas
+         - Show a zen plot for each copula family. Each 2d plot shows a
+           bivariate copula of that family with increasing dependence
+	 - Different families could also form different groups of the same zen plot
+
+
+### New ideas/features #########################################################
+
+- write gridMerge which essentially builds gTree(children = gList(plot1call, plot2call))
+- be able to write plot1d = list(fun = c("hist", "density", "label"),
+                                 args = list(fun1 = , fun2 = , fun3 = ))
+  and get overlaid 1d plots (same for 2d)
+
+
+### List of features (determined from man pages) ###############################
+
+1) extreme_pairs, extreme_pairs_graph:
+- find so-many pairs with largest/smallest value in a symmetric matrix (and
+  graph them (not too useful))
+
+2) occupancy_to_human:
+- convert an occupancy matrix to a more human-readable one
+
+3) 1d plots: rug, points, jitter, density, boxplot, hist, label, arrow, rect, lines
+   2d plots: points, density, axes, label, arrow, rect
+   ... for packages 'graphics', 'grid', 'loon'
+
+4) scale01:
+- scaling data to [0,1] with "columnwise", "all", "pobs" methods
+
+5) to_list, zenpath:
+- to_list returns a list of (grouped) matrices which can be passed to zenplot
+- zenpath returns a sequence of variables which can be used to index the data
+  (via to_list()) for plotting via zenplot.
+
+6) unfold, zenplot:
+- unfold returns a list consisting of the path and details about the layout
+- display layout via plot1d = "layout", plot2d = "layout"
+- zenplot:
+  + indicates groups (via lists of lists)
+  + correctly deals with (partially and fully) missing data
+  + sophisticated labels
+  + your own 1d/2d functions
+  + your own turns
+  + packages graphics, grid, loon
+  + colors
+  + n2dcol choices
+  + different zigzagging methods
+  + first1d, last1d
+  + width1d, width2d
+
+
+### Further TODO ###############################################################
+
+- Should we introduce 'height2d'?
+- Font size issues (solution? probably requires to write a helper function in the number
+  of 2d plots per row and column and set cex (or gpar(cex)) accordingly...)
+- How do pobs look like when computed from a multiv. normal mixture?
+- Cite papers in all help files!
+- Maybe we can speed-up the computation of a full Eulerian and (thus?) avoid the
+  dependence on PairViz?
+- Apply in the context of M. Wainwright
+- The dependence vignette shows that there is a 'star-shaped' connection of
+  variable 296 with many others (especially weak tail dependence). Can zen
+  plots deal with that? Would be cool if a turn was only made when it's a
+  different variable and the layout would simply extend straight in the same
+  direction (as a pairs plot) if it's the same variable.
+  => A topic for a PhD student? design layout...
