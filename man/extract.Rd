@@ -46,8 +46,8 @@ extract_2d(zargs)
 \author{Marius Hofert}
 \seealso{
   \code{\link{plots_graphics}},
-  \code{\link{plots_grid}}
-  %% \code{\link{plots_loon}} TODO: comment in when loon is on CRAN
+  \code{\link{plots_grid}},
+  \code{\link{plots_loon}}
 }
 \examples{
 ## Dummy example (mimicking how zargs are built internally)

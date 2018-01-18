@@ -8,7 +8,8 @@
 ##' @note This is exported so that one doesn't always have to figure
 ##'       out whether the variables (axes) in the current plot need
 ##'       to be switched manually.
-plot_indices <- function(zargs) zargs$vars[zargs$num,]
+plot_indices <- function(zargs)
+    zargs$vars[zargs$num,] # access 2-column matrix of plot variables at current plot number
 
 ##' @title Auxiliary function for burst()
 ##' @param x A vector, matrix or data.frame (or a (pure) list, but that we don't use here)
@@ -25,7 +26,7 @@ plot_indices <- function(zargs) zargs$vars[zargs$num,]
 ##'         ugly but we have to use them here as we cannot
 ##'         determine whether they were assigned automatically or
 ##'         on purpose.
-burst_ <- function(x, labs = "V")
+burst_aux <- function(x, labs = "V")
 {
     ## Construct labels
     if(is.vector(x)) x <- as.matrix(x)
@@ -57,9 +58,9 @@ burst_ <- function(x, labs = "V")
 ##'        'group': the label names for group labels (or NULL for no group labels)
 ##'        'var': the variable labels (or NULL for no variable labels)
 ##'        'sep': the separator between group and variable labels
+##'        'group2d': a logical indicating whether labels of group_2d_*() plots
+##'                   are affected by 'group = NULL' (or still printed)
 ##'        If labs = NULL, neither group nor variable labels are used
-##' @param sep The separator between the group and variable labels; ignored if
-##'        the 'group' or 'var' label is NULL.
 ##' @return A list with components
 ##'         'xcols': a list containing the column vectors of x
 ##'         'groups': the group number for each column of x
@@ -72,7 +73,7 @@ burst <- function(x, labs = list())
 {
     ## Checks
     if(!is.standard(x))
-        stop("'x' must be a vector, matrix, data.frame, or a list of such.")
+        stop("'x' must be a vector, matrix, data.frame, or a list of such.\nIf not, consider writing your own 'plot1d' and 'plot2d'.")
     if(!is.null(labs)) {
         ## With this construction, the user gets the following defaults
         ## even when (s)he only specifies less than the three components
@@ -83,31 +84,33 @@ burst <- function(x, labs = list())
             labs$var <- "V"
         if(all(is.na(pmatch("sep", table = nms, duplicates.ok = TRUE))))
             labs$sep <- ", "
+        if(all(is.na(pmatch("group2d", table = nms, duplicates.ok = TRUE))))
+            labs$group2d <- FALSE
     }
 
     ## Distinguish the cases
     if(is.vector(x, mode = "list")) { # proper list (and not a data.frame)
 
-        ngrps <- length(x) # number of groups
+        ngrps <- length(x) # number of groups (=number of sublists)
         if(ngrps == 0) stop("'x' has to have positive length.")
 
         ## Burst all groups
-        x. <- x # dummy for calling burst_() on
+        x. <- x # dummy for calling burst_aux() on
         names(x.) <- NULL # remove names for burst as these group names show up in variable names otherwise
-        col.lst <- lapply(x., burst_, labs = if(is.null(labs)) NULL else labs[["var"]])
-        xcols <- unlist(col.lst, recursive = FALSE)
-        gsizes <- vapply(col.lst, length, NA_real_)
-        groups <- rep(1:ngrps, times = gsizes)
-        vars <- unlist(lapply(gsizes, seq_len), use.names = FALSE)
-        vlabs <- if(is.null(labs)) NULL else names(xcols) # unlist(lapply(col.lst, FUN = names), use.names = FALSE)
+        col.lst <- lapply(x., burst_aux, labs = if(is.null(labs)) NULL else labs[["var"]])
+        xcols <- unlist(col.lst, recursive = FALSE) # x as a list of columns
+        gsizes <- vapply(col.lst, length, NA_real_) # group sizes
+        groups <- rep(1:ngrps, times = gsizes) # group numbers
+        vars <- unlist(lapply(gsizes, seq_len), use.names = FALSE) # variable numbers
+        vlabs <- if(is.null(labs)) NULL else names(xcols) # variable labels; unlist(lapply(col.lst, FUN = names), use.names = FALSE)
 
         ## Build group labels
-        ## - If is.null(labs[["group"]]), omit group labels
+        ## - If is.null(labs[["group"]]) and labs[["group2d"]] = TRUE, omit group labels
         ## - If no group labels are given at all, construct them;
         ## - If some group labels are given, use (only) them and omit the others
         glabs <- if(is.null(labs)) {
             NULL
-        } else if(is.null(labs[["group"]])) {
+        } else if(is.null(labs[["group"]]) && labs[["group2d"]]) {
             r <- rep("", ngrps)
             r[groups] # expand
         } else {
@@ -144,7 +147,7 @@ burst <- function(x, labs = list())
 
     } else { ## if(is.vector(x) || is.matrix(x) || is.data.frame(x)) {
 
-        xcols <- burst_(x, labs = if(is.null(labs)) NULL else labs[["var"]]) # columns with names
+        xcols <- burst_aux(x, labs = if(is.null(labs)) NULL else labs[["var"]]) # columns with names
         l <- length(xcols)
         groups <- rep(1, l)
         vars <- seq_len(l)
@@ -160,8 +163,6 @@ burst <- function(x, labs = list())
          glabs = glabs, # group labels (NULL unless 'x' is a list)
          vlabs = vlabs) # variable labels
 }
-
-.burst_environ <- new.env(hash = FALSE, parent = emptyenv()) # define the environment to cache the burst x
 
 ##' @title A list of columns
 ##' @param x A list of columns
@@ -227,13 +228,17 @@ extract_1d <- function(zargs)
     labs <- zargs$labs
     num <- zargs$num
 
-    ## Burst x and cache result (fail-safe)
-    if(!exists("burst.x", envir = .burst_environ) || num == 1) { # if 'burst.x' does not exist in .burst_environ or if the current call is the first for the current plot...
-        xburst <- burst(x, labs = labs) # compute it (=> xcols (with glabs + vlabs), groups, vars, glabs, vlabs)
-        assign("burst.x", xburst, envir = .burst_environ) # ... and cache it
-    } else { # if it exists
-        xburst <- get("burst.x", envir = .burst_environ) # ... get it
-        if(num == nrow(vars)) rm("burst.x", envir = .burst_environ) # ... but remove it again after the last plot!
+    ## Burst x and cache result
+    if(!exists("burst.x", envir = .zenplots_burst_envir) || num == 1) {
+        xburst <- burst(x, labs = labs) # burst 'x' (=> xcols (with glabs + vlabs), groups, vars, glabs, vlabs)...
+        assign("burst.x", xburst, envir = .zenplots_burst_envir) # ... and cache it
+    } else {
+        xburst <- get("burst.x", envir = .zenplots_burst_envir) # get it...
+         if(num == nrow(vars)) rm("burst.x", envir = .zenplots_burst_envir) # ... but remove it again after the last plot
+        ## Note: This rm() is only for the case when extract_*d() is called separately.
+        ##       In general, 'burst.x' is removed from .zenplots_burst_envir in zenplot()
+        ##       as extract_*d() might not be called on last plot (e.g., if plot1d is
+        ##       user-provided and does not call extract_*d() or if last1d = FALSE etc.)
     }
 
     ## Pick out the plot variable index
@@ -308,13 +313,17 @@ extract_2d <- function(zargs)
     labs <- zargs$labs
     num <- zargs$num
 
-    ## Burst x and cache result (fail-safe)
-    if(!exists("burst.x", envir = .burst_environ) || num == 1) { # if 'burst.x' does not exist in .burst_environ or if the current call is the first for the current plot...
-        xburst <- burst(x, labs = labs) # compute it (=> xcols (with glabs + vlabs), groups, vars, glabs, vlabs)
-        assign("burst.x", xburst, envir = .burst_environ) # ... and cache it
-    } else { # if it exists
-        xburst <- get("burst.x", envir = .burst_environ) # ... get it
-        if(num == nrow(vars)) rm("burst.x", envir = .burst_environ) # ... but remove it again after the last plot!
+    ## Burst x and cache result
+    if(!exists("burst.x", envir = .zenplots_burst_envir) || num == 1) {
+        xburst <- burst(x, labs = labs) # burst 'x' (=> xcols (with glabs + vlabs), groups, vars, glabs, vlabs)...
+        assign("burst.x", xburst, envir = .zenplots_burst_envir) # ... and cache it
+    } else {
+        xburst <- get("burst.x", envir = .zenplots_burst_envir) # get it...
+        if(num == nrow(vars)) rm("burst.x", envir = .zenplots_burst_envir) # ... but remove it again after the last plot
+        ## Note: This rm() is only for the case when extract_*d() is called separately.
+        ##       In general, 'burst.x' is removed from .zenplots_burst_envir in zenplot()
+        ##       as extract_*d() might not be called on last plot (e.g., if plot1d is
+        ##       user-provided and does not call extract_*d() or if last1d = FALSE etc.)
     }
 
     ## Pick out the plot variable indices

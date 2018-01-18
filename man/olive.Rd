@@ -20,7 +20,7 @@ data("olive")
   }
 }
 \source{
-  The data set was obtained from the \R\ package \pkg{pdfCluster} (for
+  The data set was obtained from the package \pkg{pdfCluster} (for
   convenience). It contains 572 rows of observations.  The first and the
   second column correspond to the area (Centre-North, South,
   Sardinia) and the geographical region of origin of the olive oils

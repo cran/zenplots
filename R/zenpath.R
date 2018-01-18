@@ -2,90 +2,6 @@
 ## with a zen plot
 
 
-##' @title Find the Pairs with Smallest (or Largest) Entry in the (Lower)
-##'        Triangular Area of a Symmetric Matrix
-##' @param x A symmetric matrix (of distances)
-##' @param n Number of extreme values to be returned
-##' @param method A character string indicating the method to be used
-##' @param use.names A logical indicating whether colnames(x) are to be
-##'        used (if not NULL)
-##' @return A (n, 3)-matrix with the n largest/smallest/both
-##'         values in the symmetric matrix x (3rd column) and the
-##'         corresponding indices (1st and 2nd column)
-##' @author Marius Hofert and Wayne Oldford
-extreme_pairs <- function(x, n = 6, method = c("largest", "smallest", "both"),
-                          use.names = FALSE)
-{
-    ## Checks
-    if(!is.matrix(x)) x <- as.matrix(x)
-    d <- ncol(x)
-    method <- match.arg(method)
-    stopifnot(n >= 1, d >= 2, nrow(x) == d, is.logical(use.names))
-
-    ## Build (row, col)-matrix
-    ind <- as.matrix(expand.grid(1:d, 1:d)[,2:1])
-    ind <- ind[ind[,1]<ind[,2],] # pick out indices as they appear in the upper triangular matrix
-    colnms <- colnames(x)
-    if(use.names && !is.null(colnms))
-        ind <- matrix(colnms[as.matrix(ind)], ncol = 2)
-
-    ## Merge with entries to a (row, col, value)-data frame
-    ## Note that, since x is symmetric, values of the *lower* triangular
-    ## matrix as a vector matches indices in 'ind'
-    val <- data.frame(ind, x[lower.tri(x)], stringsAsFactors = FALSE)
-
-    ## Sort the data.frame according to the values and adjust the row/column names
-    res <- val[order(val[,3], decreasing = TRUE),]
-    colnames(res) <- c("row", "col", "value")
-    rownames(res) <- NULL
-
-    ## Now grab out the 'extreme' pairs and values
-    pairs <- 1:nrow(ind) # d*(d-1)/2 pairs
-    switch(method,
-    "largest" = {
-        stopifnot(n <= nrow(ind))
-        res[head(pairs, n = n),] # from large to small
-    },
-    "smallest" = {
-        stopifnot(n <= nrow(ind))
-        res[rev(tail(pairs, n = n)),] # from small to large
-    },
-    "both" = {
-        stopifnot(n <= floor(nrow(ind)/2))
-        res[c(head(pairs, n = n), tail(pairs, n = n)),] # from large to small
-    },
-    stop("Wrong 'method'"))
-}
-
-##' @title Compute a Graph Showing the Pairs with Largest (or Smallest)
-##'        n Values in a Symmetric Matrix
-##' @param x A symmetric matrix
-##' @param n Number of extreme values to be returned
-##' @param method A character string indicating the method to be used
-##' @param use.names A logical indicating whether colnames(x) are to be
-##'        used (if not NULL)
-##' @return graphNEL object (can be plotted with Rgraphviz)
-##' @author Marius Hofert and Wayne Oldford
-extreme_pairs_graph <- function(x, n = 6, method = c("largest", "smallest", "both"),
-                                use.names = FALSE)
-{
-    ## Call extreme_pairs_graph()
-    xtr.pairs <- as.matrix(extreme_pairs(x, n = n, method = method, use.names = FALSE))
-    colnames(xtr.pairs) <- NULL
-
-    ## Build vertex names
-    ft <- xtr.pairs[,1:2] # from/to
-    v.ind <- sort(unique(as.vector(ft))) # indices of vertices
-    colnms <- colnames(x)
-    v.nms <- if(use.names && !is.null(colnms)) { # determine vertex names
-        ft[,1:2] <- colnms[ft[,1:2]] # put the variable names in ft
-        colnms[v.ind]
-    } else as.character(v.ind)
-
-    ## Build graph
-    ftM2graphNEL(ft, W = xtr.pairs[,3], V = v.nms, edgemode = "undirected") # possibly uneven, disconnected
-}
-
 ##' @title Extract Pairs from a Path of Indices and Return the Shortened Path
 ##' @param x The path as a vector or list of indices of the variables to be plotted
 ##' @param n A vector of length 2 giving the number of pairs to extract from
@@ -163,8 +79,13 @@ extract_pairs <- function(x, n)
 connect_pairs <- function(x, duplicate.rm = FALSE)
 {
     if(is.list(x)) {
-        stopifnot(all(sapply(x, function(x.) length(x.) == 2)))
-        x <- matrix(unlist(x), ncol = 2, byrow = TRUE)
+        if(is.data.frame(x)) { # matrix-like data frame
+            stopifnot(ncol(x) == 2)
+            x <- as.matrix(x)
+        } else { # proper list
+            stopifnot(all(sapply(x, function(x.) length(x.) == 2)))
+            x <- matrix(unlist(x), ncol = 2, byrow = TRUE)
+        }
     }
     stopifnot(is.matrix(x), nrow(x) >= 1, is.logical(duplicate.rm))
     if(duplicate.rm) {
@@ -221,6 +142,65 @@ connect_pairs <- function(x, duplicate.rm = FALSE)
     res[1:l]
 }
 
+##' @title Plot pairs along a zenpath in the form of a graph
+##' @param x Matrix or list of pairs along a zenpath. Can also be a list with
+##'        vectors longer than 2 (then being interpreted as *connected* pairs)
+##' @param var.names names of the variables appearing in x
+##' @return graphNEL object; can be plot()ed
+##' @author Marius Hofert
+graph_pairs <- function(x, var.names = NULL)
+{
+    ## If x a list (even with different lengths of its components, so
+    ## 'grouped'), convert x to a 2-column matrix
+    if(is.list(x) && !is.data.frame(x)) {
+        stopifnot(all(sapply(x, function(x.) length(x.) >= 2)))
+        x.. <- lapply(x, function(x.) {
+            l <- length(x.)
+            if(l > 2) {
+                c(x.[1], rep(x.[2:(l-1)], each = 2), x.[l]) # recycle all elements except first and last
+            } else x.
+        })
+        x <- matrix(unlist(x..), ncol = 2, byrow = TRUE)
+    }
+    ## => x is now a two-column matrix of the (ordered) pairs to be graphed
+    ##    according to the weights
+
+    ## Deal with weights
+    ## Works but not needed
+    ## if(!is.null(weights)) {
+    ##     if(is.vector(weights)) {
+    ##         stopifnot(length(weights) == nrow(x))
+    ##     } else if(is.matrix(weights)) {
+    ##         stopifnot(nrow(weights) == ncol(weights))
+    ##         weights <- weights[x] # grab out
+    ##     } else stop("'weights' must either be a vector or a square matrix")
+    ##     ## => weights is now a vector
+    ## }
+
+    ## Build vertex names
+    var.ind <- sort(unique(as.vector(x))) # indices of vertices
+    if(is.null(var.names)) var.names <- as.character(var.ind)
+    if(length(var.names) != length(var.ind))
+        stop("'var.names' must be of length ",length(var.ind))
+
+    ## Build graph
+    ftM2graphNEL(x, V = var.names, edgemode = "undirected") # possibly uneven, disconnected
+}
+
+##' @title Splitting a Matrix into a List of Matrices
+##' @param x A matrix
+##' @param indices A list of vectors of indices according to
+##'        which 'x' is grouped
+##' @return A list of (grouped) matrices
+##' @author Marius Hofert
+group <- function(x, indices)
+{
+    if(length(dim(x)) != 2)
+       stop("'x' needs to have two dimensions")
+    stopifnot(is.list(indices))
+    lapply(indices, function(ii) x[, unlist(ii), drop = FALSE])
+}
+
 ##' @title Computing Indices to Sort Data for a Zenplot
 ##' @param x An input object giving the weights (depending on the method)
 ##'        according to which the pairs of variables are sorted. For
@@ -235,10 +215,12 @@ connect_pairs <- function(x, duplicate.rm = FALSE)
 ##' @param method A sorting method; one of
 ##'        "front.loaded": Sort all pairs such that the first variables appear
 ##'                        the most frequently early in the sequence;
-##'                        an Eulerian path
+##'                        an Eulerian path; note that it might be slightly
+##'                        longer than the number of pairs because, first, an even
+##'                        graph has to be made
 ##'        "back.loaded": Sort all pairs such that the later variables appear
 ##'                       the most frequently later in the sequence;
-##'                       an Eulerian path
+##'                       an Eulerian path (+ see front.loaded concerning length)
 ##'        "balanced": Sort all pairs such that all variables appear in
 ##'                    balanced blocks throughout the sequence
 ##'                    (a Hamiltonian Decomposition; Eulerian, too).
@@ -364,16 +346,3 @@ zenpath <- function(x, pairs = NULL,
     stop("Wrong 'method'"))
 }
 
-##' @title Splitting a Matrix into a List of Matrices
-##' @param x A matrix
-##' @param indices A list of vectors of indices according to
-##'        which 'x' is grouped
-##' @return A list of (grouped) matrices
-##' @author Marius Hofert
-group <- function(x, indices)
-{
-    if(length(dim(x)) != 2)
-       stop("'x' needs to have two dimensions")
-    stopifnot(is.list(indices))
-    lapply(indices, function(ii) x[, unlist(ii), drop = FALSE])
-}

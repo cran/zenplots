@@ -2,6 +2,7 @@
 \alias{zenpath}
 \alias{extract_pairs}
 \alias{connect_pairs}
+\alias{graph_pairs}
 \alias{group}
 \title{(Group) Indices to Subset a Matrix for a Zenplot}
 \description{
@@ -15,6 +16,7 @@ zenpath(x, pairs = NULL,
         decreasing = TRUE)
 extract_pairs(x, n)
 connect_pairs(x, duplicate.rm = FALSE)
+graph_pairs(x, var.names = NULL)
 group(x, indices)
 }
 \arguments{
@@ -27,7 +29,7 @@ group(x, indices)
 	  \item{\code{"balanced"}:}{as for \code{method = "front.loaded"}.}
 	  \item{\code{"eulerian.cross"}:}{two \code{\link{integer}}s
 	    representing the group sizes.}
-	  \item{\code{"eulerian.weighted"}:}{\code{\link{numeric}}
+	  \item{\code{"eulerian.weighted"}:}{\code{\link{numeric}} weight
 	    \code{\link{vector}} (or
 	    \code{\link{matrix}} or distance matrix).}
 	  \item{\code{"strictly.weighted"}:}{as for
@@ -37,12 +39,17 @@ group(x, indices)
       \item{\code{extract_pairs}:}{the path, a \code{\link{vector}} or
 	\code{\link{list}} of indices of the variables to be plotted.}
       \item{\code{connect_pairs}:}{two-column \code{\link{matrix}} or
-	a \code{\link{list}} containing vectors of length two.}
+	a \code{\link{list}} containing vectors of length two representing
+	the pairs to be connected.}
+      \item{\code{graph_pairs}:}{\code{\link{matrix}} or \code{\link{list}}
+        of pairs along a zenpath. Can also be a list containing vectors
+	of length larger than two (then being interpreted as connected
+	pairs).}
       \item{\code{group}:}{\code{\link{matrix}} (or an object
 	convertible to such via \code{\link{as.matrix}()}).}
   }}
   \item{pairs}{two-column \code{\link{matrix}} containing (row-wise)
-    the pairs of variables to be sorted according to the
+    the pairs of connected variables to be sorted according to the
     weights. \code{pairs} is only used for methods
     \code{eulerian.weighted}, \code{strictly.weighted}.}
   \item{method}{\code{\link{character}} string indicating the sorting
@@ -66,11 +73,12 @@ group(x, indices)
     sorting is done according to increasing or decreasing weights.}
   \item{n}{\code{\link{vector}} of length two giving the number of pairs to
     extract from the path \code{x} (if \code{NULL}, all pairs are
-    returned (nothing extracted); if of length one, it is replicated)
+    returned (nothing extracted); if of length one, it is replicated).
     The first number corresponds to the beginning of the path,
     the second to the end; at least one of the two numbers should be >= 1.}
   \item{duplicate.rm}{\code{\link{logical}} indicating whether equal
     pairs (up to permutation) are omitted.}
+  \item{var.names}{names of the variables appearing in \code{x}.}
   \item{indices}{list of vectors of indices according to which \code{x}
     is grouped.}
 }
@@ -113,7 +121,7 @@ zenpath(10) # integer argument
 extract_pairs(zp, n = 3)
 
 ## A more sophisticated example
-nVars <- 5 # number of variables involved
+nVars <- 5 # number of variables
 set.seed(271)
 x <- runif(nVars*(nVars-1)/2) # weights
 ## Construct the pairs
@@ -122,8 +130,11 @@ pairs <- pairs[pairs[,1] < pairs[,2],]
 pairs <- matrix(unlist(pairs), ncol = ncol(pairs))
 stopifnot(length(x) == nrow(pairs)) # sanity check
 ## Manually compute the result of method = "strictly.weighted" and group the pairs
-## 1) Sort pairs according to the weights x
-(pairs. <- pairs[order(x, decreasing = TRUE),])
+## 1) Sort pairs according to the weights x and plot the variables
+w <- order(x, decreasing = TRUE)
+(pairs. <- pairs[w,])
+library(graph)
+plot(graph_pairs(pairs.)) # depict all pairs (edge = pair)
 ## 2) Now go through the rows and determine the sequence of adjacent pairs
 ##    which can be plotted with a zenplot
 res <- list(c(5,3,1),

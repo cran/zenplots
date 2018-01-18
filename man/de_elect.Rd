@@ -95,7 +95,7 @@ data("de_elect")
 \source{
   The data was obtained from http://www.bundeswahlleiter.de but is not
   available under this link anymore. Furthermore, the first column of
-  the original data set is ommitted as it onl contained the row numbers.
+  the original data set is ommitted as it only contained the row numbers.
 }
 \examples{
 data("de_elect")

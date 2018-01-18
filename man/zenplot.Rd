@@ -9,7 +9,7 @@
 \usage{
 unfold(nfaces, turns = NULL,
        n2dcols = c("letter", "square", "A4", "golden", "legal"),
-       method = c("tidy", "double.zigzag", "single.zigzag"),
+       method = c("tidy", "double.zigzag", "single.zigzag", "rectangular"),
        first1d = TRUE, last1d = TRUE, width1d = 1, width2d = 10)
 zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
         n2dcols = c("letter", "square", "A4", "golden", "legal"),
@@ -22,11 +22,11 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
                   width1d = TRUE, width2d = TRUE,
                   ispace = match.arg(pkg) != "graphics"),
         lim = c("individual", "groupwise", "global"),
-        labs = list(group = "G", var = "V", sep = ", "),
-        pkg = c("graphics", "grid"),
-        method = c("tidy", "double.zigzag", "single.zigzag"),
+        labs = list(group = "G", var = "V", sep = ", ", group2d = FALSE),
+        pkg = c("graphics", "grid", "loon"),
+        method = c("tidy", "double.zigzag", "single.zigzag", "rectangular"),
         width1d = if(is.null(plot1d)) 0.5 else 1, width2d = 10,
-        ospace = 0.02,
+        ospace = if(pkg == "loon") 0 else 0.02,
         ispace = if(pkg == "graphics") 0 else 0.037,
         draw = TRUE, ...)
 }
@@ -34,14 +34,14 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
   \item{nfaces}{number of faces of the hypercube to unfold.}
   \item{x}{data object, typically a \code{\link{vector}}, \code{\link{matrix}},
     \code{\link{data.frame}}, or a
-    \code{\link{list}} of such (\dQuote{standard form}). In case of a
+    \code{\link{list}} of such. In case of a
     list, the components of \code{x} are interpreted as groups of data
     which are visually separated by a two-dimensional (group) plot.}
   \item{turns}{\code{\link{character}} vector (of length two times the
     number of variables to be plotted minus 1) consisting of \code{"d"},
     \code{"u"}, \code{"r"} or \code{"l"} indicating the turns out of the
     current plot position; if \code{NULL}, the \code{turns} are
-    constructed (if \code{x} is of standard form).}
+    constructed (if \code{x} is of the form described before).}
   \item{n2dcols}{number of columns of 2d plots (\eqn{\ge 1}{>= 1})
     or one of \code{"letter"}, \code{"square"}, \code{"A4"},
     \code{"golden"} or \code{"legal"} in
@@ -52,8 +52,8 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     one-dimensional plot constructed with package \code{pkg}.
     Alternatively, a \code{\link{character}} string of an existing
     function. For the defaults provided, the corresponding functions
-    are obtained when appending \code{_1d_graphics} or \code{_1d_grid}
-    %% or \code{_1d_loon} TODO: comment in when loon is on CRAN
+    are obtained when appending \code{_1d_graphics}, \code{_1d_grid}
+    or \code{_1d_loon}
     depending on which \code{pkg} is used. Another
     feature is \code{plot1d = NULL} in which case no plot is
     constructed.}
@@ -61,8 +61,8 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     two-dimensional plot constructed with package \code{pkg}.
     Alternatively, a \code{\link{character}} string of an existing
     function. For the defaults provided, the corresponding functions
-    are obtained when appending \code{_2d_graphics} or \code{_2d_grid}
-    %% or \code{_2d_loon} TODO: comment in when loon is on CRAN
+    are obtained when appending \code{_2d_graphics}, \code{_2d_grid}
+    or \code{_2d_loon}
     depending on which \code{pkg} is used. As for \code{plot1d},
     \code{plot2d} allows for \code{plot2d = NULL}.}
   \item{first1d}{\code{\link{logical}} indicating whether the first
@@ -80,11 +80,13 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     on to \code{plot1d} and \code{plot2d}. If one of them is set to
     \code{FALSE}, the argument is not passed on.}
   \item{lim}{(x-/y-)axis limits. This
-    can be a \code{\link{character}} string or a \code{numeric(2)}.}
+    can be a \code{\link{character}} string or a \code{numeric(2)}.
+    If \code{lim = "groupwise"} and \code{x} does not contain groups,
+    the behavior is equivalent to \code{lim = "global"}.}
   \item{labs}{plot labels to be used; typically as given in the
     default, but can be anything as long as \code{plot1d} and
-    \code{plot2d} know how to deal with it. See also the argument
-    \code{labels} of \code{\link{burst}()}.}
+    \code{plot2d} know how to deal with it. See the argument
+    \code{labs} of \code{\link{burst}()} for the exact specification.}
   \item{pkg}{R package used for plotting (depends on how the
     functions \code{plot1d} and \code{plot2d} were constructed;
     the user is responsible for choosing the appropriate package
@@ -100,6 +102,9 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
 	counterclockwise by 90 degrees.}
       \item{\code{single.zigzag}:}{zigzag plot in the form of a
 	flipped \dQuote{S}.}
+      \item{\code{rectangular}:}{plots that fill the page from
+        left to right and top to bottom. This is useful (and most compact)
+	for plots that do not share an axis.}
     }
     Note that \code{method} is ignored if \code{turns} are provided.}
   \item{width1d}{graphical parameter > 0 giving the width of 1d plots.}
@@ -111,8 +116,7 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
   \item{ispace}{vector being repeated to have
     length four giving the (bottom, left, top, right) inner space
     between the figure region and the plot region in \eqn{[0,1]}.}
-  \item{draw}{\code{\link{logical}} indicating whether a plot is
-    created.}
+  \item{draw}{\code{\link{logical}} indicating whether a plot is created.}
   \item{\dots}{additional arguments passed to both \code{plot1d} and
     \code{plot2d}. If you need to pass certain arguments only to one
     of them, say, \code{plot2d}, consider providing your own
@@ -129,12 +133,11 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
   \dQuote{r}, \dQuote{d}, \dQuote{u})) and details about the layout
   (another \code{\link{list}}).
 
-  \code{zenplot()} (besides plotting) \code{invisibly} returns a list
+  \code{zenplot()} (besides plotting) invisibly returns a list
   containing the path and layout. For \code{pkg = "grid"}, the whole plot
   as a \code{\link[grid]{grob}} (grid object) is returned additionally.
-  %% TODO: comment in when loon is on CRAN
-  %% and for \code{pkg = "loon"}, the whole plot as a
-  %% \code{\link[loon]{loon}} object and the toplevel tk object is returned additionally.
+  For \code{pkg = "loon"}, the whole plot as a
+  \code{\link[loon]{loon}} object and the toplevel tk object is returned additionally.
 }
 \author{Marius Hofert and Wayne Oldford}
 %% \references{
@@ -143,20 +146,19 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
 %% }
 \seealso{
   All provided default \code{plot1d} and \code{plot2d} functions, see
-  \link{plots_graphics}, \link{plots_grid}. %, \link{plots_loon}. TODO: comment in when loon is on CRAN
+  \link{plots_graphics}, \link{plots_grid}, \link{plots_loon}.
 
   \code{\link{extract_1d}()} and \code{\link{extract_2d}()}
   for how \code{zargs} can be split up into a list of columns and corresponding
   group and variable information.
 
-  \code{\link{burst_}()} and \code{\link{burst}()} for how \code{x}
+  \code{\link{burst}()} for how \code{x}
   can be split up into all sorts of information useful for plotting (see
   our default \code{plot1d} and \code{plot2d}).
 
   \code{\link{vport}()} for how to construct a viewport for (our
   default) \pkg{grid} (\code{plot1d} and \code{plot2d}) functions.
 
-  \code{\link{extreme_pairs}()}, \code{\link{extreme_pairs_graph}()},
   \code{\link{extract_pairs}()}, \code{\link{connect_pairs}()},
   \code{\link{group}()} and \code{\link{zenpath}()} for
   (zen)path-related functions.
@@ -173,7 +175,9 @@ set.seed(271) # set seed (for reproducibility)
 x <- matrix(rnorm(n*d), ncol = d) # i.i.d. N(0,1) data
 
 ## A basic zenplot
-zenplot(x)
+res <- zenplot(x)
+stopifnot(identical(res, unfold(nfaces = d - 1)))
+## => The return value of zenplot() is the underlying unfold()
 
 ## Some missing data
 z <- x
@@ -204,14 +208,17 @@ z <- list(x[,1:2], 1:10, x[,3])
 zenplot(z)
 
 ## Without labels or with different labels
-z <- list(x[,1:2], cbind(NA, NA), x[,3])
+z <- list(A = x[,1:2], B = cbind(NA, NA), C = x[,3])
 zenplot(z, labs = NULL) # without any labels
-zenplot(z, labs = list(group = NULL)) # without group labels
+zenplot(z, labs = list(group = NULL, group2d = TRUE)) # without group labels
+zenplot(z, labs = list(group = NULL)) # without group labels unless groups change
 zenplot(z, labs = list(var = NULL)) # without variable labels
-zenplot(z, labs = list(group = "Group ", var = "Variable ", sep = " - ")) # change default labels
+zenplot(z, labs = list(var = "Variable ", sep = " - ")) # change default labels
 
 ## Example with a factor
 zenplot(iris)
+zenplot(iris, lim = "global") # global scaling of axis
+zenplot(iris, lim = "groupwise") # acts as 'global' here (no groups in the data)
 
 
 ### More sophisticated examples ################################################
@@ -237,8 +244,8 @@ zenplot(z.)
 
 ## A basic example
 turns <- c("l","d","d","r","r","d","d","r","r","u","u","r","r","u","u","l","l",
-           "u","u","l","l","u","u","l","l","d","d", "l","l","d","d","l","l","d",
-           "d","r","r","d","d")
+           "u","u","l","l","u","u","l","l","d","d","l","l","d","d","l","l",
+           "d","d","r","r","d","d")
 zenplot(x, plot1d = "layout", plot2d = "layout", turns = turns) # layout of plot regions
 ## => The tiles stick together as ispace = 0.
 zenplot(x, plot1d = "layout", plot2d = "layout", turns = turns,
@@ -258,7 +265,7 @@ zenplot(x, plot1d = "label", plot2d = function(zargs)
     density_2d_graphics(zargs, box = TRUE))
 
 ## With grid
-\dontrun{
+\donttest{
 zenplot(x, plot1d = "label", plot2d = function(zargs)
         density_2d_grid(zargs, box = TRUE), pkg = "grid")
 }
@@ -284,7 +291,7 @@ zenplot(x, plot1d = function(zargs)
 
 ## With grid
 library(grid) # for gTree() and gList()
-\dontrun{
+\donttest{
 zenplot(x, pkg = "grid", # you are responsible for choosing the right pkg (cannot be tested!)
         plot1d = function(zargs)
                rug_1d_grid(zargs, col = cols[(zargs$num+1)/2]))
@@ -300,7 +307,7 @@ zenplot(x, plot1d = "arrow", plot2d = function(zargs) {
 })
 
 ## With grid
-\dontrun{
+\donttest{
 zenplot(x, pkg = "grid", plot1d = "arrow", plot2d = function(zargs)
     gTree(children = gList(rect_2d_grid(zargs),
                            label_2d_grid(zargs))))
@@ -315,7 +322,7 @@ zenplot(x, plot1d = "arrow", plot2d = function(zargs) {
 })
 
 ## With grid
-\dontrun{
+\donttest{
 zenplot(x, pkg = "grid", plot1d = "arrow", plot2d = function(zargs)
     gTree(children = gList(rect_2d_grid(zargs),
                            label_2d_grid(zargs, loc = c(1.04, 0),
@@ -355,7 +362,7 @@ zenplot(x, plot1d = function(zargs) {
 ### More sophisticated examples ################################################
 
 ### Example: Overlaying histgrams with densities (the *proper* way)
-
+\donttest{
 ## Define proper 1d plot for overlaying histograms with densities
 hist_with_density_1d <- function(zargs)
 {
@@ -428,10 +435,11 @@ zenplot(x, plot1d = "hist_with_density_1d",
             points_2d_graphics(zargs, add = TRUE,
                                col = adjustcolor("black", alpha.f = 0.3))
 })
-
+}
 
 ### Example: A path through pairs of a grouped t copula sample
 
+\donttest{
 ## 1) Build a random sample from a 17-dimensional grouped t copula
 d. <- c(8, 5, 4) # sector dimensions
 d <- sum(d.) # total dimension
@@ -505,12 +513,14 @@ zenplot(U[,ord], # has correct variable names as column names
                                 just = c("left", "top"), rot = 90, cex = 0.45,
                                 fontface = "bold") )))
 ## => The points are colorized correctly (compare with the pairs plot).
+}
 
 
 ### Using ggplot2 ##############################################################
 
 ## Although not thoroughly tested, in principle ggplot2 can also be used via
 ## pkg = "grid" as follows.
+\donttest{
 library(ggplot2)
 
 ## Define our own 2d plot
@@ -542,10 +552,12 @@ zenplot(iris., n2dplots = 3, plot2d = "my_points_2d_ggplot", pkg = "grid")
 zenplot(iris., n2dplots = 3,
         plot2d = function(zargs) my_points_2d_ggplot(zargs, extract2d = FALSE),
         pkg = "grid")
+}
 
 
 ### Providing your own data structure ##########################################
 
+\donttest{
 ## Danger zone: An example with a new data structure (here: a list of *lists*)
 ## Note: - In this case, we most likely need to provide both plot1d and plot2d
 ##         (but not in this case here since arrow_1d_graphics() does not depend
@@ -561,12 +573,62 @@ z <- list(list(1:5, 2:1, 1:3), list(1:5, 1:2))
 zenplot(z, n2dplots = 4, plot1d = "arrow", last1d = FALSE,
     plot2d = function(zargs, ...) {
        r <- unlist(zargs$x, recursive = FALSE)
-       num2d <- zargs$num/2 # plot number of 2d plots
+       num2d <- zargs$num/2 # plot number among 2d plots
        x <- r[[num2d]]
        y <- r[[num2d + 1]]
        if(length(x) < length(y)) x <- rep(x, length.out = length(y))
        else if(length(y) < length(x)) y <- rep(y, length.out = length(x))
        plot(x, y, type = "b", xlab = "", ylab = "")
 }, ispace = c(0.2, 0.2, 0.1, 0.1))
+}
+
+
+### Zenplots based on 3d lattice plots #########################################
+
+\donttest{
+library(lattice)
+library(grid)
+library(gridExtra)
+
+## Build a list of cloud() plots (trellis objects)
+## Note:
+## - 'grid' problem: Without print(), the below zenplot() may fail (e.g.,
+##   in fresh R sessions) with: 'Error in UseMethod("depth") :
+##   no applicable method for 'depth' applied to an object of class "NULL"'
+## - col = "black" inside scales is needed to make the ticks show
+mycloud <- function(x, num) {
+    lim <- extendrange(0:1, f = 0.04)
+    print(cloud(x[, 3] ~ x[, 1] * x[, 2], xlim = lim, ylim = lim, zlim = lim,
+                xlab = substitute(U[i.], list(i. = num)),
+                ylab = substitute(U[i.], list(i. = num + 1)),
+                zlab = substitute(U[i.], list(i. = num + 2)),
+                zoom = 1, scales = list(arrows = FALSE, col = "black"),
+                col = "black",
+                par.settings = list(standard.theme(color = FALSE),
+                                    axis.line = list(col = "transparent"),
+                                    clip = list(panel = "off"))))
+}
+plst.3d <- lapply(1:4, function(i)
+    mycloud(x[,i:(i+2)], num = i)) # list of trellis objects
+
+## Preparing the zenplot
+num <- length(plst.3d)
+ncols <- 2
+turns <- c(rep("r", 2*(ncols-1)), "d", "d",
+           rep("l", 2*(ncols-1)), "d")
+plot2d <- function(zargs) {
+    num2d <- (zargs$num+1)/2
+    vp <- vport(zargs$ispace, xlim = 0:1, ylim = 0:1)
+    grob(p = zargs$x[[num2d]], vp = vp, cl = "lattice") # convert trellis to grid object
+    ## Note: For further plots, Work with
+    ##       gTree(children = gList(grob(zargs$x[[num2d]], vp = vp,
+    ##                                   cl = "lattice")))
+}
+
+## Zenplot
+## Note: We use a list of *plots* here already (not data)
+zenplot(plst.3d, turns = turns, n2dplots = num, pkg = "grid", first1d = FALSE,
+        last1d = FALSE, plot1d = "arrow_1d_grid", plot2d = plot2d)
+}
 }
 \keyword{hplot}

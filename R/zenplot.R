@@ -1,7 +1,8 @@
 ## Unfolding and zenplots
 
 
-##' @title Unfold the hypercube and produce all necessary plotting information
+##' @title Unfold the hypercube and produce all information concerning the zenpath
+##'        and zenplot layout
 ##' @param nfaces The number of faces of the hypercube to unfold
 ##' @param turns A vector of turns (in "u", "d", "l", "r"); contructed if NULL
 ##' @param n2dcols The number of columns of 2d plots (>= 1) or one of "letter", "square",
@@ -17,7 +18,7 @@
 ##' @author Marius Hofert and Wayne Oldford
 unfold <- function(nfaces, turns = NULL,
                    n2dcols = c("letter", "square", "A4", "golden", "legal"),
-                   method = c("tidy", "double.zigzag", "single.zigzag"),
+                   method = c("tidy", "double.zigzag", "single.zigzag", "rectangular"),
                    first1d = TRUE, last1d = TRUE, width1d = 1, width2d = 10)
 {
     ## Checking
@@ -38,25 +39,27 @@ unfold <- function(nfaces, turns = NULL,
         turn_checker(turns, n2dplots = nfaces, first1d = first1d, last1d = last1d)
     }
 
-    ## Construct the path (= turns, positions in the occupancy matrix
-    ## and the occupancy matrix)
+    ## 1) Construct the path (= turns, positions in the occupancy matrix
+    ##    and the occupancy matrix)
     path <- get_path(turns, n2dplots = nfaces, n2dcols = n2dcols,
                      method = method, first1d = first1d, last1d = last1d)
-
-    ## If turns is not provided, extract them here (for checking and computing
-    ## the layout via get_layout())
+    ##    If 'turns' is not provided, extract them now (for checking and computing
+    ##    the layout via get_layout())
     if(is.null(turns)) {
         turns <- path$turns
         turn_checker(turns, n2dplots = nfaces, first1d = first1d, last1d = last1d)
     }
 
-    ## Determine the layout
+    ## 2) Determine the layout
     layout <- get_layout(turns, n2dplots = nfaces, first1d = first1d, last1d = last1d,
                          width1d = width1d, width2d = width2d)
 
     ## Return
     list(path = path, layout = layout)
 }
+
+## Set up hidden (not found on ls()) environment in R_GlobalEnv for burst object 'x'
+.zenplots_burst_envir <- new.env(hash = FALSE, parent = emptyenv()) # define the environment to cache the burst x
 
 ##' @title Main function to create a zenplot (possibly a grob), the path and the layout
 ##' @param x A data object (typically a vector, matrix, data.frame or a list of such
@@ -92,7 +95,7 @@ unfold <- function(nfaces, turns = NULL,
 ##' @param ispace The inner space in [0,1] between the figure regions and the (1d/2d)
 ##'        plot regions. A vector of length 4 (bottom, left, top, right) or repeated
 ##'        to be as such.
-##' @param draw If pkg = "grid", a logical indicating whether plotting should be done.
+##' @param draw A logical indicating whether plotting should be done.
 ##' @param ... Additional arguments passed to both plot1d() and plot2d().
 ##' @return invisible() with:
 ##'         - graphics: path, layout
@@ -102,19 +105,20 @@ unfold <- function(nfaces, turns = NULL,
 zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
                     n2dcols = c("letter", "square", "A4", "golden", "legal"),
                     n2dplots = NULL,
-                    plot1d = c("label", "points", "jitter", "density", "boxplot", "hist",
-                               "rug", "arrow", "rect", "lines", "layout"),
-                    plot2d = c("points", "density", "axes", "label", "arrow", "rect", "layout"),
+                    plot1d = c("label", "points", "jitter", "density", "boxplot",
+                               "hist", "rug", "arrow", "rect", "lines", "layout"),
+                    plot2d = c("points", "density", "axes", "label", "arrow",
+                               "rect", "layout"),
                     zargs = c(x = TRUE, turns = TRUE, orientations = TRUE,
                               vars = TRUE, num = TRUE, lim = TRUE, labs = TRUE,
                               width1d = TRUE, width2d = TRUE,
                               ispace = match.arg(pkg) != "graphics"),
                     lim = c("individual", "groupwise", "global"),
-                    labs = list(group = "G", var = "V", sep = ", "),
-                    pkg = c("graphics", "grid"),#, "loon"), TODO: comment in when loon is on CRAN
-                    method = c("tidy", "double.zigzag", "single.zigzag"),
+                    labs = list(group = "G", var = "V", sep = ", ", group2d = FALSE),
+                    pkg = c("graphics", "grid", "loon"),
+                    method = c("tidy", "double.zigzag", "single.zigzag", "rectangular"),
                     width1d = if(is.null(plot1d)) 0.5 else 1, width2d = 10,
-                    ospace = 0.02, # if(pkg == "loon") 0 else 0.02, TODO: comment in when loon is on CRAN
+                    ospace = if(pkg == "loon") 0 else 0.02,
                     ispace = if(pkg == "graphics") 0 else 0.037,
                     draw = TRUE, ...)
 {
@@ -173,9 +177,8 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     pkg <- match.arg(pkg)
     if(pkg == "grid" && !requireNamespace("grid"))
         stop("Package 'grid' is not available.")
-    ## TODO: comment in when loon is on CRAN
-    ## if(pkg == "loon" && !requireNamespace("loon"))
-    ##     stop("Package 'loon' is not available.")
+    if(pkg == "loon" && !requireNamespace("loon"))
+        stop("Package 'loon' is not available.")
 
     ## Check plot1d
     if(missing(plot1d)) plot1d <- match.arg(plot1d)
@@ -190,7 +193,7 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
         }
         if(!exists(as.character(substitute(plot1d))))
             stop("Function provided as argument 'plot1d' does not exist.")
-    } # => plot1d either NULL; "<defaults>_<pkg>" or a string of an existing function; or an existing function
+    } # => plot1d either NULL, "<defaults>_<pkg>", a string of an existing function or an existing function
 
     ## Check plot2d
     if(missing(plot2d)) plot2d <- match.arg(plot2d)
@@ -209,14 +212,14 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
         }
         if(!exists(as.character(substitute(plot2d))))
             stop("Function provided as argument 'plot2d' does not exist.")
-    } # => plot2d either NULL; "<defaults>_<pkg>" or a string of an existing function; or an existing function
+    } # => plot2d either NULL, "<defaults>_<pkg>", a string of an existing function or an existing function
 
     ## Check ospace and ispace
     if(length(ospace) != 4) ospace <- rep(ospace, length.out = 4)
     if(length(ispace) != 4) ispace <- rep(ispace, length.out = 4)
 
 
-### Get arguments, variable names etc., call unfold(), determine layout ########
+### 1) Get arguments, variable names etc., call unfold(), determine layout #####
 
     ## Get '...' arguments
     .args <- list(...)
@@ -227,13 +230,13 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
                          first1d = first1d, last1d = last1d,
                          width1d = width1d, width2d = width2d)
     path <- pathLayout$path
-    Layout <- pathLayout$layout
-    bbs <- Layout$boundingBoxes
-    vars <- Layout$vars # 2-column matrix of plot variables (= indices)
-    dims <- Layout$dimensions
-    orientations <- Layout$orientations
-    LayoutWidth <- Layout$LayoutWidth
-    LayoutHeight <- Layout$LayoutHeight
+    layout <- pathLayout$layout
+    bbs <- layout$boundingBoxes
+    vars <- layout$vars # 2-column matrix of plot variables (= indices)
+    dims <- layout$dimensions
+    orientations <- layout$orientations
+    layoutWidth <- layout$layoutWidth
+    layoutHeight <- layout$layoutHeight
     turns <- path$turns
     nPlots <- nrow(bbs)
     stopifnot(nPlots == nrow(vars)) # fail-safe programming
@@ -245,11 +248,11 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     fg.cols <- fg.cols[order(fg.cols[,1], decreasing = FALSE),, drop = FALSE]
     fg.nrow <- nrow(fg.rows)
     fg.ncol <- nrow(fg.cols)
-    heights <- (fg.rows[,  "top"] - fg.rows[,"bottom"]) / LayoutHeight
-    widths  <- (fg.cols[,"right"] - fg.cols[,  "left"]) / LayoutWidth
+    heights <- (fg.rows[,  "top"] - fg.rows[,"bottom"]) / layoutHeight
+    widths  <- (fg.cols[,"right"] - fg.cols[,  "left"]) / layoutWidth
 
 
-### Determine formal arguments of plot1d() and plot2d() to be passed ###########
+### 2) Determine formal arguments of plot1d() and plot2d() to be passed ########
 
     ## Decide whether to add the object named arg to the argument list zargs
     add_to_zargs <- function(arg) {
@@ -301,53 +304,72 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     ## Big switch
     positions <- path$positions
     switch(pkg,
-           "graphics" = { # graphics ###########################################
+    "graphics" = { # graphics ##################################################
 
-        ## Determine default spacing around zenplot and around 1d/2d plots
-        stopifnot(0 <= ospace, ospace <= 1, 0 <= ispace, ispace <= 1)
-        opar <- par(no.readonly = TRUE) # get plotting parameter list
-        par(omd = c(0+ospace[2], 1-ospace[4], 0+ospace[1], 1-ospace[3]), # left, right, bottom, top space in [0,1]; more convenient than 'oma'
-            plt = c(0+ispace[2], 1-ispace[4], 0+ispace[1], 1-ispace[3])) # left, right, bottom, top space in [0,1]; more convenient than 'mar'
-        on.exit(par(opar)) # set back after function call
+        if(draw) {
 
-        ## Layout
-        lay <- matrix(0, nrow = fg.nrow, ncol = fg.ncol, byrow = TRUE)
-        for(k in 1:nrow(positions))
-            lay[positions[k,1], positions[k,2]] <- k
-        layout(lay, widths = widths, heights = heights) # layout
-        ## => Use, e.g., layout.show(nrow(positions)) to display the layout
+            ## 3) Determine default spacing around zenplot and around 1d/2d plots
+            stopifnot(0 <= ospace, ospace <= 1, 0 <= ispace, ispace <= 1)
+            opar <- par(no.readonly = TRUE) # get plotting parameter list
+            par(omd = c(0+ospace[2], 1-ospace[4], 0+ospace[1], 1-ospace[3]), # left, right, bottom, top space in [0,1]; more convenient than 'oma'
+                plt = c(0+ispace[2], 1-ispace[4], 0+ispace[1], 1-ispace[3])) # left, right, bottom, top space in [0,1]; more convenient than 'mar'
+            on.exit(par(opar)) # set back after function call
 
-        ## Iterate over plots
-        for(i in seq_len(nPlots))
-        {
-            ## Possibly add the plot number
-            if(exists("num", where = zargs1d)) zargs1d[["num"]] <- i
-            if(exists("num", where = zargs2d)) zargs2d[["num"]] <- i
+            ##    Layout
+            lay <- matrix(0, nrow = fg.nrow, ncol = fg.ncol, byrow = TRUE)
+            for(k in 1:nPlots)
+                lay[positions[k,1], positions[k,2]] <- k
+            indices <- sort(unique(as.numeric(lay))) # get all assigned numbers >= 0
+            indices <- indices[indices > 0] # omit 0s in matrix
+            if(length(indices) > nPlots || !all(indices %in% 0:nPlots))
+                stop("That's a bug, please report.")
+            if(length(indices) < nPlots) {
+                mssng <- which(!(1:nPlots %in% indices)) # missing indices
+                stop("layout() failed due to missing plot numbers (",paste(mssng, collapse = ", "),") in its first argument.\nThese were most likely overwritten by later 'turns', please check.")
+            }
+            layout(lay, widths = widths, heights = heights) # layout
+            ## => Use, e.g., layout.show(nPlots) to display the layout
 
-            ## Plot
-            if(plot.NULL[i]) { # no plot
-                plot(NA, type = "n", ann = FALSE, axes = FALSE, xlim = 0:1, ylim = 0:1)
-            } else { # plot
-                if(dims[i] == 1) {
-                    do.call(plot1d, args = c(list(zargs = zargs1d), .args))
-                } else {
-                    do.call(plot2d, args = c(list(zargs = zargs2d), .args))
+            ## 4) Iterate over plots
+            for(i in seq_len(nPlots))
+            {
+                ## Possibly add the plot number
+                if(exists("num", where = zargs1d)) zargs1d[["num"]] <- i
+                if(exists("num", where = zargs2d)) zargs2d[["num"]] <- i
+
+                ## Plot
+                if(plot.NULL[i]) { # no plot
+                    plot(NA, type = "n", ann = FALSE, axes = FALSE, xlim = 0:1, ylim = 0:1)
+                } else { # plot
+                    if(dims[i] == 1) {
+                        do.call(plot1d, args = c(list(zargs = zargs1d), .args))
+                    } else {
+                        do.call(plot2d, args = c(list(zargs = zargs2d), .args))
+                    }
                 }
             }
+
         }
 
-        ## Return
-        invisible(list(path = path, layout = Layout))
+        ## Delete 'burst.x' from .zenplots_burst_envir (need to do that
+        ## here as extract_*d() might not be called by all 1d/2d plots
+        ## (e.g., if plot1d is user-provided and does not call extract_*d() or
+        ## if last1d = FALSE etc.)
+        if(exists("burst.x", envir = .zenplots_burst_envir))
+            rm("burst.x", envir = .zenplots_burst_envir) # remove 'burst.x'
+
+        ## Return (the return value of unfold())
+        invisible(list(path = path, layout = layout))
 
     },
     "grid" = { # grid ###################################################
 
-        ## Layout
+        ## 3) Layout
         lay <- grid.layout(nrow = fg.nrow, ncol = fg.ncol,
                            widths = unit(widths, "npc"),
                            heights = unit(heights, "npc"), just = "centre")
 
-        ## Determine default spacing around zenplot
+        ##    Determine default spacing around zenplot
         stopifnot(0 <= ospace, ospace <= 1, 0 <= ispace, ispace <= 1)
         vp <- viewport(x = unit(ospace[2], "npc"),
                        y = unit(ospace[1], "npc"),
@@ -355,7 +377,7 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
                        width  = unit(1-sum(ospace[c(2,4)]), "npc"),
                        height = unit(1-sum(ospace[c(1,3)]), "npc"))
 
-        ## Iterate over plots (time-consuming part)
+        ## 4) Iterate over plots (time-consuming part)
         if(draw) grid.newpage()
         fg <- frameGrob(layout = lay, vp = vp) # major result (a frame grob)
         for(i in seq_len(nPlots))
@@ -382,103 +404,103 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
         ## Plot the actual plot object (another time-consuming part)
         if(draw) grid.draw(fg)
 
-        ## Return
-        invisible(list(path = path, layout = Layout, grob = fg))
+        ## Delete 'burst.x' from .zenplots_burst_envir (need to do that
+        ## here as extract_*d() might not be called by all 1d/2d plots
+        ## (e.g., if plot1d is user-provided and does not call extract_*d() or
+        ## if last1d = FALSE etc.)
+        if(exists("burst.x", envir = .zenplots_burst_envir))
+            rm("burst.x", envir = .zenplots_burst_envir) # remove 'burst.x'
+
+        ## Return (the return value of unfold() and the frame grob)
+        invisible(list(path = path, layout = layout, grob = fg))
 
     },
-    ## TODO: comment in when loon is on CRAN
-    ## "loon" = { # loon ###################################################
+    "loon" = { # loon ###################################################
 
-    ##     ## Determine default spacing around zenplot
-    ##     stopifnot(0 <= ospace, 0 == ospace %% 1, 0 <= ispace, ispace <= 1)
-    ##     tt <- tktoplevel()
-    ##     parent <- tkframe(tt)
-    ##     tkpack(parent, fill="both", expand=TRUE,
-    ##            padx=ospace[1:2],
-    ##            pady=ospace[3:4])
+        if(!draw) # return the return value of unfold()
+           return(invisible(list(path = path, layout = layout)))
 
-    ##     ## tktitle(parent) <- "Zenplot layout in Loon"
+        ## 3) Determine default spacing around zenplot
+        stopifnot(0 <= ospace, 0 == ospace %% 1, 0 <= ispace, ispace <= 1)
+        tt <- tktoplevel()
+        parent <- tkframe(tt)
+        tkpack(parent, fill="both", expand=TRUE,
+               padx=ospace[1:2],
+               pady=ospace[3:4])
 
-    ##     ## Save the plots in a list for later configuration
-    ##     ## TODO WO: This needs to be (completely) reworked (see above); also, what default spacing (in terms of ospace) do you want here?
-    ##     loonPlots <- vector(mode="list", length = nPlots)
+        ## tktitle(parent) <- "Zenplot layout in Loon"
 
-    ##     ## Determine default spacing around zenplot and around 1d/2d plots
-    ##     ##opar <- par(no.readonly = TRUE) # get plotting parameter list
-    ##     ##par(omd = c(0+ospace[2], 1-ospace[4], 0+ospace[1], 1-ospace[3]), # left, right, bottom, top space in [0,1]; more convenient than 'oma'
-    ##     ##    plt = c(0+ispace[2], 1-ispace[4], 0+ispace[1], 1-ispace[3])) # left, right, bottom, top space in [0,1]; more convenient than 'mar'
-    ##     ##on.exit(par(opar)) # set back after function call
+        ##    Save the plots in a list for later configuration
+        loonPlots <- vector(mode="list", length = nPlots)
 
-    ##     ## Layout
-    ##     ##lay <- matrix(0, nrow = fg.nrow, ncol = fg.ncol, byrow = TRUE)
-    ##     ##for(k in 1:nrow(positions))
-    ##     ##  lay[positions[k,1], positions[k,2]] <- k
-    ##     ##layout(lay, widths = widths, heights = heights) # layout
-    ##     ## => Use, e.g., layout.show(nrow(positions)) to display the layout
+        ## 4) Iterate over plots
+        for(i in seq_len(nPlots))
+        {
+            ## Possibly add the plot number
+            if(exists("num", where = zargs1d)) zargs1d[["num"]] <- i
+            if(exists("num", where = zargs2d)) zargs2d[["num"]] <- i
 
-    ##     ## Iterate over plots
-    ##     for(i in seq_len(nPlots))
-    ##     {
-    ##         ## Possibly add the plot number
-    ##         if(exists("num", where = zargs1d)) zargs1d[["num"]] <- i
-    ##         if(exists("num", where = zargs2d)) zargs2d[["num"]] <- i
+            ## Add additional args
+            ## args1d <- if(!hasArg("linkingGroup")) {
+            ##  c(zargs1d,
+            ##    list(linkingGroup = paste0("Zenplots: loon ID =", parent$ID)),
+            ##    .args)
+            ##} else c(zargs1d, .args)
+            ##args2d <- if(!hasArg("linkingGroup")) {
+            ##  c(zargs2d,
+            ##    list(linkingGroup = paste0("Zenplots: loon ID =", parent$ID)),
+            ##    .args)
+            ##} else c(zargs2d, .args)
 
-    ##         ## Add additional args
-    ##         ## args1d <- if(!hasArg("linkingGroup")) {
-    ##         ##  c(zargs1d,
-    ##         ##    list(linkingGroup = paste0("Zenplots: loon ID =", parent$ID)),
-    ##         ##    .args)
-    ##         ##} else c(zargs1d, .args)
-    ##         ##args2d <- if(!hasArg("linkingGroup")) {
-    ##         ##  c(zargs2d,
-    ##         ##    list(linkingGroup = paste0("Zenplots: loon ID =", parent$ID)),
-    ##         ##    .args)
-    ##         ##} else c(zargs2d, .args)
+            ## Plot
+            newPlot <- if(plot.NULL[i]) { # no plot
+                l_plot(showLabels = FALSE, showScales = FALSE)
+            } else { # plot
+                if(dims[i] == 1) {
+                    do.call(plot1d, args = c(list(zargs = zargs1d, parent=parent), .args))
+                } else {
+                    do.call(plot2d, args = c(list(zargs = zargs2d, parent=parent), .args))
+                }
+            }
 
-    ##         ## Plot
-    ##         newPlot <- if(plot.NULL[i]) { # no plot
-    ##             l_plot(showLabels = FALSE, showScales = FALSE)
-    ##         } else { # plot
-    ##             if(dims[i] == 1) {
-    ##                 do.call(plot1d, args = c(list(zargs = zargs1d, parent=parent), .args))
-    ##             } else {
-    ##                 do.call(plot2d, args = c(list(zargs = zargs2d, parent=parent), .args))
-    ##             }
-    ##         }
+            ## Placing of plots in the parent tkgrid
+            ##
+            tkgrid(newPlot,  row = positions[i,1] - 1,  column = positions[i,2] - 1, sticky="nesw" )# tk is zero based
+            ## Tuck the plot away for later configuration
+            loonPlots[[i]] <- newPlot
+        }
 
-    ##         ## Placing of plots in the parent tkgrid
-    ##         ##
-    ##         tkgrid(newPlot,  row = positions[i,1] - 1,  column = positions[i,2] - 1, sticky="nesw" )# tk is zero based
-    ##         ## Tuck the plot away for later configuration
-    ##         loonPlots[[i]] <- newPlot
-    ##     }
+        ## Resize the parent so that all plots fit
+        l_resize(tt, 600, 600)
+        ## Resize all plots
+        for(p in loonPlots)
+            tkconfigure(paste0(p,'.canvas'), width=1, height=1)
+        ## l_configure(p, showLabels=FALSE, showScales=FALSE)
 
+        ## Set the row widths/weights
+        rowWeights <- round(heights * layoutHeight)
+        for(rowNo in 1:length(rowWeights))
+            tkgrid.rowconfigure(parent,
+                                rowNo - 1, # zero based indexing
+                                weight=rowWeights[rowNo])
 
-    ##     ## Resize the parent so that all plots fit
-    ##     l_resize(tt, 600, 600)
-    ##     ## Resize all plots
-    ##     for(p in loonPlots)
-    ##         tkconfigure(paste0(p,'.canvas'), width=1, height=1)
-    ##     ## l_configure(p, showLabels=FALSE, showScales=FALSE)
+        ## Set the column widths/weights
+        colWeights <- round(widths * layoutWidth)
+        for(colNo in 1:length(colWeights))
+            tkgrid.columnconfigure(parent,
+                                   colNo - 1, # zero based indexing
+                                   weight=colWeights[colNo])
 
-    ##     ## Set the row widths/weights
-    ##     rowWeights <- round(heights * LayoutHeight)
-    ##     for(rowNo in 1:length(rowWeights))
-    ##         tkgrid.rowconfigure(parent,
-    ##                             rowNo - 1, # zero based indexing
-    ##                             weight=rowWeights[rowNo])
+        ## Delete 'burst.x' from .zenplots_burst_envir (need to do that
+        ## here as extract_*d() might not be called by all 1d/2d plots
+        ## (e.g., if plot1d is user-provided and does not call extract_*d() or
+        ## if last1d = FALSE etc.)
+        if(exists("burst.x", envir = .zenplots_burst_envir))
+            rm("burst.x", envir = .zenplots_burst_envir) # remove 'burst.x'
 
-    ##     ## Set the column widths/weights
-    ##     colWeights <- round(widths * LayoutWidth)
-    ##     for(colNo in 1:length(colWeights))
-    ##         tkgrid.columnconfigure(parent,
-    ##                                colNo - 1, # zero based indexing
-    ##                                weight=colWeights[colNo])
-    ##     ## if(draw) { # plot  is always drawn in loon}
+        ## Return (the return value of unfold() and more)
+        invisible(list(path = path, layout = layout, loon = parent, toplevel = tt))
 
-    ##     ## Return
-    ##     invisible(list(path = path, layout = Layout, loon = parent, toplevel = tt))
-
-    ## },
+    },
     stop("Wrong 'pkg'"))
 }

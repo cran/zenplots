@@ -68,13 +68,17 @@ get_layout <- function(turns, n2dplots, first1d = TRUE, last1d = TRUE, width1d =
     nPlots <- length(dimensions) # number of plots; >= 1 (checked)
     orientations <- rep("s", nPlots) # plot orientations ("s"=square, "h"=horizontal, "v"=vertical)
 
-    ## Determine positions of bounding boxes (in terms of default width and
-    ## height units); for each plot, start at zero
+    ## 1) Determine positions of bounding boxes (in terms of default width and
+    ##    height units); for each plot, start at zero
     coordsBB <- matrix(0, nrow = nPlots, ncol = 4,
-                       dimnames = list(NULL, c("left", "right", "bottom", "top")))
+                       dimnames = list(NULL, c("left", "right", "bottom", "top"))) # (nPlots, 4)-matrix
 
-    ## Now we have to build the variable selections and their information
-    vars <- matrix(0, nrow=nPlots, ncol=2, dimnames=list(NULL, c("x", "y")))
+    ##    Now we have to build the variable selections and their information
+    vars <- matrix(0, nrow=nPlots, ncol=2, dimnames=list(NULL, c("x", "y"))) # (nPlots, 2)-matrix
+
+    ## 2) Loop over all plots starting from the 2nd
+
+    ## 2.1) Deal with first plot
     if (dimensions[1]==1) {
         lastVar <- 1
         curVar <- lastVar
@@ -97,12 +101,12 @@ get_layout <- function(turns, n2dplots, first1d = TRUE, last1d = TRUE, width1d =
         coordsBB[1, "top"]   <- width2d
     }
 
-    ## Loop over all plots starting from the 2nd
+    ## 2.2) Actual loop
     for(i in 1+seq_len(nPlots-1)) { # 2,3,...,nPlots
-        if(dimensions[i] == 1) {
-            vars[i,] <- indices[rep(curVar, 2)]
+        if(dimensions[i] == 1) { # current plot is a 1d plot
+            vars[i,] <- indices[rep(curVar, 2)] # determine 1d plot variables
             coordsBB[i,] <-
-                switch(turns[i],
+                switch(turns[i], # determine 1d plot bounding box
                        "l" = {
                            orientations[i]="v"
                            adjust_bb(turns[i-1], coordslastBB=coordsBB[i-1,],
@@ -124,11 +128,9 @@ get_layout <- function(turns, n2dplots, first1d = TRUE, last1d = TRUE, width1d =
                                      w=width2d, h=width1d)
                        },
                        stop("Wrong 'turns' for 1d plot"))
-        } else { # dimensions[i] == 2
+        } else { # current plot is a 2d plot
             curVar <- curVar + 1
-            coordsBB[i,] <- adjust_bb(turns[i-1], coordslastBB=coordsBB[i-1,],
-                                      w=width2d, h=width2d)
-            vars[i,] <- indices[switch(turns[i],
+            vars[i,] <- indices[switch(turns[i], # determine 2d plot variables
                                "l" = {
                                    c(lastVar, curVar)
                                },
@@ -142,16 +144,18 @@ get_layout <- function(turns, n2dplots, first1d = TRUE, last1d = TRUE, width1d =
                                    c(curVar, lastVar)
                                },
                                stop("Wrong 'turns' for 2d plot"))]
+            coordsBB[i,] <- adjust_bb(turns[i-1], coordslastBB=coordsBB[i-1,],
+                                      w=width2d, h=width2d) # determine 2d plot bounding box
             lastVar <- curVar
         }
     }
 
     ## Return
-    LayoutWidth  <- diff(range(coordsBB[,c(  "left", "right")])) # total width
-    LayoutHeight <- diff(range(coordsBB[,c("bottom", "top")])) # total height
+    layoutWidth  <- diff(range(coordsBB[,c(  "left", "right")])) # total width
+    layoutHeight <- diff(range(coordsBB[,c("bottom", "top")])) # total height
     list(orientations = orientations, # vector of plot orientations ("s"=square, "h"=horizontal, "v"=vertical)
          dimensions = dimensions, # plot dimensions (1d plot, 2d plot, 1d plot, ...)
          vars = vars, # (nPlots, 2)-matrix of variables
-         LayoutWidth = LayoutWidth, LayoutHeight = LayoutHeight, # total width and height
+         layoutWidth = layoutWidth, layoutHeight = layoutHeight, # total width and height
          boundingBoxes = coordsBB) # bounding boxes
 }

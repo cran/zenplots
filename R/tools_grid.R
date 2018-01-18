@@ -11,10 +11,11 @@
 ##' @return The viewport
 ##' @author Marius Hofert
 ##' @note Ideas from dataViewport() and extendrange()
+##'       Omitted check:
+##'       if(length(ispace) != 4) ispace <- rep(ispace, length.out = 4)
+##'       stopifnot(0 <= ispace, ispace <= 1)
 vport <- function(ispace, xlim = NULL, ylim = NULL, x = NULL, y = NULL, ...)
 {
-  ## if(length(ispace) != 4) ispace <- rep(ispace, length.out = 4)
-  ## stopifnot(0 <= ispace, ispace <= 1)
   if(is.null(xlim) && is.null(ylim) && is.null(x) && is.null(y)) {
     ## Non-data viewport
     viewport(x = unit(ispace[2], "npc"),

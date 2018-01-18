@@ -1,8 +1,7 @@
 ## By Marius Hofert
 
 ## This script investigates tail dependence in constituent data of the S&P 500.
-## It takes roughly 3h to run on standard hardware (2016; can differ
-## substantially), so you might want to grab a coffee or two...
+## It takes 3h to run on standard hardware (2016; can differ substantially).
 
 
 ### Setup ######################################################################
@@ -13,18 +12,18 @@ library(qqtest)
 library(zoo)
 library(Matrix)
 library(pcaPP)
-library(qrmdata)
-library(qrmtools)
 library(copula)
 library(mvtnorm)
 library(zenplots)
 library(lattice)
+library(qrmdata)
+library(qrmtools)
 doPNG <- require(crop)
 
 ## Set working directory (to find existing objects!)
-usr <- Sys.getenv("USER")
-if(usr == "mhofert") setwd("../../misc") else if (usr == "rwoldford")
-           setwd("/Users/rwoldford/Documents/Software/zenplots/pkg/misc")
+## usr <- Sys.getenv("USER")
+## if(usr == "mhofert") setwd("../../misc") else if (usr == "rwoldford")
+##            setwd("/Users/rwoldford/Documents/Software/zenplots/pkg/misc")
 
 
 ### 0 Auxiliary functions ######################################################
@@ -130,13 +129,16 @@ pw_test <- function(U, P, Nu)
 ##' @param q fitted MA order
 ##' @return maximal p-value
 ##' @author Marius Hofert
+##' @note The order of the pairs may depend on whether p-values or the
+##'       Ljung--Box test statistics are used as the latter depends on
+##'       the (thirty considered) lag(s).
 LB_test <- function(x, lag.max = 30, p = 1, q = 1) {
     lag <- seq_len(lag.max)
     df <- rep(0, lag.max)
     df[lag > p + q] <- p + q
     min(vapply(lag, FUN = function(l)
-        Box.test(x, lag = l, type = "Ljung-Box", fitdf = df[l])$p.value, # equivalent ordering results when 'statistic' is used
-               FUN.VALUE = NA_real_))
+        Box.test(x, lag = l, type = "Ljung-Box", fitdf = df[l])$p.value,
+        FUN.VALUE = NA_real_))
 }
 
 
@@ -159,6 +161,8 @@ if(doPNG) dev.off.crop(file)
 ## Keep the time series with at most 20% missing data and fill NAs
 keep <- apply(x, 2, function(x.) mean(is.na(x.)) <= 0.2) # keep those with <= 20% NA
 x <- x[, keep] # data we keep
+percentNA <- round(100 * apply(x, 2, function(x.) mean(is.na(x.)))) # % of NAs for those with <= 20% NA
+percentNA[percentNA > 0] # => DAL (11%), DFS (15%), TEL (15%), TWC (1%)
 sectors <- sectors[keep] # corresponding sectors
 ssectors <- ssectors[keep] # corresponding subsectors
 if(doPNG)
@@ -183,7 +187,7 @@ file <- paste0("SP500_",paste0(time, collapse = "--"),"_X_Z_nu_sectors_ssectors.
 if(file.exists(file)) {
     load(file)
 } else {
-    X <- -log_returns(x) # -log-returns
+    X <- -returns(x) # -log-returns
     uspec <- rep(list(ugarchspec(distribution.model = "std")), ncol(X))
     system.time(fit.ARMA.GARCH <- fit_ARMA_GARCH(X, ugarchspec.list = uspec)) # ~ 2.5min
     ## Note: Without the default 'solver = "hybrid"', fitting for component
@@ -432,8 +436,6 @@ zpath <- zenpath(LamPW, method = "strictly.weighted") # zenpath with decreasing 
 czpath <- connect_pairs(zpath) # connected zpath
 zp <- extract_pairs(czpath, n = k) # extract top/bottom k pairs
 
-## For extracting the most extreme pairs, you can also use: extreme_pairs(LamPW, n = k, method = "both")
-
 ## Zenplot of pseudo-observations of these k most and least extreme pairs
 U.groups <- group(U, indices = zp)
 if(doPNG)
@@ -650,18 +652,129 @@ acf_2d <- function(zargs, pvalues, nus, lag.max = 30, ...)
 ## Zenplot of the ACFs for those margins with smallest LB test p-values
 n.col <- 4 # number of columns in the layout
 n.row <- 4 # number of rows in the layout
-turns <- unlist(lapply(rep(c("r", "l"), length.out = n.row), function(t) c("d", rep(t, 2*(n.col-1)), "d")))
 fname <- if(doSquared) "fig_SP500_gof_margins_LB_squared.png" else "fig_SP500_gof_margins_LB.png"
 if(doPNG)
     png(file = (file <- paste0(fname)),
         width = 8.4, height = 8.4, units = "in", res = 200, bg = "transparent")
-zenplot(Z.ord[,1:(n.col*n.row)], turns = turns,
-        n2dplots = n.col * n.row, # provided here since we use our own turns
+zenplot(Z.ord[,1:(n.col*n.row+1)], # fill it completely
+        n2dcols = n.col, method = "rectangular",
         last1d = FALSE, ospace = 0.03, ispace = c(0.17, 0.17, 0, 0), cex = 0.1,
         plot1d = "arrow", plot2d = function(zargs, ...) {
             acf_2d(zargs, pvalues = pvals.margins.ord, nus = nu.margins.ord, ...)
 })
 if(doPNG) dev.off.crop(file)
+
+
+## Checking the time series which had NA
+
+## Specify the fitted model
+uspec <- ugarchspec(distribution.model = "std")
+
+## Components with NA in (0%, 20%)
+percentNA[percentNA > 0]
+
+## DAL
+x. <- x[,"DAL"]
+plot(x., type = "l") # => fine
+x.. <- -returns(x.)
+plot(x.., type = "l") # => fine
+fit.. <- ugarchfit(uspec, data = x.., solver = "hybrid")
+Z.. <- as.numeric(residuals(fit.., standardize = TRUE))
+plot(Z.., type = "l") # ... suddenly a peak
+day <- index(x..)[which(Z.. < -1e5)]
+x..[c(day-2, day-1, day)] # ... at the first trading day
+acf(Z..) # ... but ACF not affected
+## Check out lag plot
+if(doPNG)
+    png(file = (file <- paste0("fig_SP500_ACF_problem_DAL_lag_plot.png")),
+        width = 6, height = 6, units = "in", res = 300, bg = "transparent")
+lZ.. <- length(Z..)
+opar <- par(pty = "s")
+plot(Z..[2:lZ..], Z..[1:(lZ..-1)], xlab = expression(Z[t+1]), ylab = expression(Z[t]))
+abline(a = 0, b = 1, lty = 2, col = "gray60")
+par(opar)
+if(doPNG) dev.off.crop(file)
+
+## DFS
+x. <- x[,"DFS"]
+plot(x., type = "l") # => fine
+x.. <- -returns(x.)
+plot(x.., type = "l") # => fine
+fit.. <- ugarchfit(uspec, data = x.., solver = "hybrid")
+Z.. <- as.numeric(residuals(fit.., standardize = TRUE))
+plot(Z.., type = "l") # ... suddenly a peak
+day <- index(x..)[which(Z.. < -1e5)]
+x..[c(day-2, day-1, day)] # ... at the first trading day
+acf(Z..) # ... but ACF not affected
+## Check out lag plot
+if(doPNG)
+    png(file = (file <- paste0("fig_SP500_ACF_problem_DFS_lag_plot.png")),
+        width = 6, height = 6, units = "in", res = 300, bg = "transparent")
+lZ.. <- length(Z..)
+opar <- par(pty = "s")
+plot(Z..[2:lZ..], Z..[1:(lZ..-1)], xlab = expression(Z[t+1]), ylab = expression(Z[t]))
+abline(a = 0, b = 1, lty = 2, col = "gray60")
+par(opar)
+if(doPNG) dev.off.crop(file)
+
+## TWC
+x. <- x[,"TWC"]
+plot(x., type = "l") # => fine
+x.. <- -returns(x.)
+plot(x.., type = "l") # => fine
+fit.. <- ugarchfit(uspec, data = x.., solver = "hybrid")
+Z.. <- as.numeric(residuals(fit.., standardize = TRUE))
+plot(Z.., type = "l") # => fine
+acf(Z..) # => fine
+
+## TEL
+x. <- x[,"TEL"]
+plot(x., type = "l") # => fine
+x.. <- -returns(x.)
+plot(x.., type = "l") # => fine
+fit.. <- ugarchfit(uspec, data = x.., solver = "hybrid")
+Z.. <- as.numeric(residuals(fit.., standardize = TRUE))
+if(doPNG)
+    png(file = (file <- paste0("fig_SP500_ACF_problem_TEL_Z.png")),
+        width = 6, height = 6, units = "in", res = 300, bg = "transparent")
+opar <- par(pty = "s")
+plot(index(x..), Z.., type = "l", xlab = "t",
+     ylab = expression("Standardized residuals"~~Z[t])) # ... suddenly a peak
+par(opar)
+if(doPNG) dev.off.crop(file)
+day <- index(x..)[which(Z.. > 10)]
+x..[c(day-2, day-1, day)] # ... at the first *two* trading days
+acf(Z..) # ... ACF *is* affected
+## Check out lag plot
+if(doPNG)
+    png(file = (file <- paste0("fig_SP500_ACF_problem_TEL_lag_plot.png")),
+        width = 6, height = 6, units = "in", res = 300, bg = "transparent")
+lZ.. <- length(Z..)
+opar <- par(pty = "s")
+plot(Z..[2:lZ..], Z..[1:(lZ..-1)], xlab = expression(Z[t+1]), ylab = expression(Z[t]))
+abline(a = 0, b = 1, lty = 2, col = "gray60")
+par(opar)
+if(doPNG) dev.off.crop(file)
+
+## How about just using an ARMA(1,1)?
+uspec <- ugarchspec(variance.model = list(garchOrder = c(0, 0)), distribution.model = "std")
+fit.. <- ugarchfit(uspec, data = x.., solver = "hybrid")
+Z.. <- as.numeric(residuals(fit.., standardize = TRUE))
+plot(Z.., type = "l") # => fine
+acf(Z..) # => fine
+## Check out lag plot (=> fine)
+if(doPNG)
+    png(file = (file <- paste0("fig_SP500_ACF_problem_TEL_lag_plot_pure_arma.png")),
+        width = 6, height = 6, units = "in", res = 300, bg = "transparent")
+lZ.. <- length(Z..)
+opar <- par(pty = "s")
+plot(Z..[2:lZ..], Z..[1:(lZ..-1)], xlab = expression(Z[t+1]), ylab = expression(Z[t])) # => fine
+abline(a = 0, b = 1, lty = 2, col = "gray60")
+par(opar)
+if(doPNG) dev.off.crop(file)
+
+## Note: When only using a GARCH(1,1), there is only one spike (much larger)
+##       which does not affect the ACF.
 
 
 ### 7.1.2 Marginally test the assumption of Z being t ##########################
@@ -707,13 +820,12 @@ qqtest_t_2d <- function(zargs, pvalues, nus, nreps, ...)
 ## Zenplot of the Q-Q plots for those margins with smallest AD test p-values
 n.col <- 4 # number of columns in the layout
 n.row <- 4 # number of rows in the layout
-turns <- unlist(lapply(rep(c("r", "l"), length.out = n.row), function(t) c("d", rep(t, 2*(n.col-1)), "d")))
 set.seed(271) # set a seed (for qqtest())
 if(doPNG)
     png(file = (file <- paste0("fig_SP500_gof_margins_AD.png")),
         width = 7, height = 7, units = "in", res = 200, bg = "transparent")
-zenplot(Z.ord[,1:(n.col*n.row)], turns = turns,
-        n2dplots = n.col * n.row, # provided here since we use our own turns
+zenplot(Z.ord[,1:(n.col*n.row+1)], # fill it completely
+        n2dcols = n.col, method = "rectangular",
         last1d = FALSE, ospace = 0, cex = 0.1,
         plot1d = "arrow", plot2d = function(zargs, ...) {
             qqtest_t_2d(zargs, pvalues = pvals.margins.ord, nus = nu.margins.ord, nreps = 1000, ...)
@@ -919,18 +1031,39 @@ plot(pobs.vpvals, col = adjustcolor("black", alpha.f = 0.08),
 if(doPNG) dev.off.crop(file)
 
 
-### 7.3.4 Pobs plots of all pairs for which bivariate t models are rejected ####
+### 7.3.4 Pobs plots of all pairs with smallest p-value for the bivariate t copulas
+###       (most pairs also have the smallest p-value for the bivariate t copulas
+###       implied by the full t copula)
 
-## Note: Only 7 more pairs would appear (all at the very end) if those for which
-##       only the full model is rejected were used (6 with 'symmetric rejections'
-##       and one with 'non-symmetric' one).
+## Sort pairs according to increasing p-values for tests of pairwise models and
+## pairwise models implied by the full model
+pvalsPWPWord <- pvalsPWPW[order(pvalsPWPW[,3]),] # order p-values for test of pairwise models
+pvalsPWFullord <- pvalsPWFull[order(pvalsPWFull[,3]),] # order p-values for test of pairwise models implied by the full model
 
-## Sort pairs (test of pairwise model) according to increasing p-values
-ord <- order(pvalsPWPW[,3])
-pvalsPWPWord <- pvalsPWPW[ord,] # order p-values for test of pairwise models
-ind.pw.rej <- which(pvalsPWPWord[,3] < 0.05) # indicator of all pairs for which the pairwise model is rejected
-num.pw.rej <- max(ind.pw.rej) # number = max as p-values are ordered
-prs <- pvalsPWPWord[1:num.pw.rej, 1:2] # (num.pw.rej, 2)-matrix containing these pairs for which the pairwise t models are rejected
+## Same order?
+same <- rowSums(pvalsPWPWord[,1:2] == pvalsPWFullord[,1:2]) == 2
+if(FALSE)
+    plot(same, xlab = "Pair", ylab = "0 = different order, 1 = same order")
+which(same)
+(mn <- min(which(!same)) - 1) # => the first 336 pairs are ordered the same
+colnames(U)[pvalsPWPWord[mn, 1:2]] # corresponding last pair "DAL", "DFS" where they are ordered in the same way
+cbind(pvalsPWPWord[mn:350,], pvalsPWFullord[336:350,])
+## Note:
+## For all those pairs until ("DAL", "DFS"), the order is the same and both the
+## pairwise models and the pairwise models implied by the full model lead to
+## rejection at (the meaningless) 0.05.
+
+## We depict the pobs of those pairs (duplicates removed) and some more to
+## fill the last row of the zenplot. For those we simply use more pairs
+## of those with smallest p-value for the bivariate t copulas but those
+## will be exactly those for which this (meaningless) p-value is >= 0.05.
+## And, one can show, that for those additional pairs, sometimes the full
+## model does not lead to rejection at the (meaningless) 0.05 level.
+
+## Pick out the pairs to plot
+ii <- max(which(pvalsPWPWord[,3] < 0.1261)) # indicator of all pairs for which the bivariate models have a p-value < such that the last row is filled
+## ii <- max(which(pvalsPWFullord[,3] < 0.05)) # ... would be one more plot and would start a new row
+prs <- pvalsPWPWord[1:ii, 1:2] # (ii, 2)-matrix containing these pairs
 prs.lst.connect <- connect_pairs(prs, duplicate.rm = TRUE) # connect them and remove duplicates
 
 ## Extract pobs to be plotted (connected, duplicates removed)
@@ -938,10 +1071,13 @@ U.lst <- vector("list", length = length(prs.lst.connect))
 for(l in 1:length(prs.lst.connect))
     U.lst[[l]] <- U[, prs.lst.connect[[l]]] # matrices (>= 2 columns)
 
-## Plot the pobs of those pairs for which (both the full and) the bivariate t copula
-## models are rejected.
+## Plot of the pobs of those pairs for which the bivariate t copula models
+## lead to the smallest p-values. Note that all pairs until ("DAL", "DFS")
+## are precisely those for which a) the pairwise t copulas are rejected at the
+## (meaningless) 0.05 level and b) the order is the same as for the
+## p-values for the bivariate t copulas implied by the full t model
 if(doPNG)
-    png(file = (file <- paste0("fig_SP500_pobs_zenplot_pw_rejections.png")),
+    png(file = (file <- paste0("fig_SP500_pobs_zenplot_smallest_p-values.png")),
         width = 7, height = 8.65, units = "in", res = 600, bg = "transparent")
 zenplot(U.lst, n2dcol = 17, ospace = 0, ispace = 0.01,
         labs = list(group = NULL, var = "V", sep = " "),

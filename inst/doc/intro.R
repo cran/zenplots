@@ -44,12 +44,13 @@ back <- zenpath(15, method = "back.loaded")
 balanced <- zenpath(15, method = "balanced")
 front <- zenpath(15, method = "front.loaded")
 n <- length(zenpath(15))
+plot_chars <- letters[1:15]
 plot(back, n - 1:n,type="b", ylab="", xlab="", main="Back loaded",
-     cex=0.75, pch=c(1:9, letters[1:6])[back], bty="n", xaxt="n", yaxt="n")
+     pch=plot_chars[back], bty="n", xaxt="n", yaxt="n")
 plot(balanced, n - 1:n,type="b", ylab="", xlab="", main="Balanced",
-     cex=0.75, pch=c(1:9, letters[1:6])[balanced], bty="n", xaxt="n", yaxt="n")
+     pch=plot_chars[balanced], bty="n", xaxt="n", yaxt="n")
 plot(front, n - 1:n,type="b", ylab="", xlab="", main="Front loaded",
-     cex=0.75, pch=c(1:9, letters[1:6])[front], bty="n", xaxt="n", yaxt="n")
+     pch=plot_chars[front], bty="n", xaxt="n", yaxt="n")
 par(parOptions)
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=7, fig.height=7----
@@ -57,7 +58,7 @@ par(parOptions)
 ## so as to give maximal space to the individual scatterplots.
 ## We also choose a different plotting character and reduce
 ## its size to better distinguish points.
-pairs(attenu, oma=rep(0,4), gap=0, xaxt="n", yaxt="n", cex=0.75, pch=19)
+pairs(attenu, oma=rep(0,4), gap=0, xaxt="n", yaxt="n")
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=7, fig.height=7----
 ## Plotting character and size are chosen to match that
@@ -67,7 +68,7 @@ pairs(attenu, oma=rep(0,4), gap=0, xaxt="n", yaxt="n", cex=0.75, pch=19)
 ## The last argument, n2dcol, is chosen so that the zenplot
 ## has the same number of plots across the page as does the
 ## pairs plot.
-zenplot(attenu[, zenpath(ncol(attenu))], cex=0.75, pch=19, n2dcol=4)
+zenplot(attenu[, zenpath(ncol(attenu))], n2dcol=4)
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=7, fig.height=7----
 ## Call zenplot exactly as before, except that each scatterplot is replaced
@@ -76,11 +77,11 @@ zenplot(attenu[, zenpath(ncol(attenu))], plot2d="arrow", n2dcol=4)
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=10, fig.height=6----
 ## The default n2dcol is used
-zenplot(attenu[, zenpath(ncol(attenu))], cex=0.75, pch=19, n2dcol=5)
+zenplot(attenu[, zenpath(ncol(attenu))], n2dcol=5)
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=6, fig.height=10----
 ## The default n2dcol is used
-zenplot(attenu[, zenpath(ncol(attenu))], cex=0.75, pch=19)
+zenplot(attenu[, zenpath(ncol(attenu))])
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=6, fig.height=10----
 ## The directions
@@ -146,21 +147,22 @@ PercentByParty.05 <- c("SPD.05", "CDU.CSU.05", "Gruene.05",
 PercentByParty <- c(PercentByParty.02, PercentByParty.05)
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=11, fig.height=14----
-groups <- list(Regions=Regions, Pop=PopDist, 
-               Change = PopChange, Agric=Agriculture, 
+groups <- list(Regions=Regions, Pop=PopDist,
+               Change = PopChange, Agric=Agriculture,
                Mining=Mining, Apt=Apt,  Cars=Motorized,
-               Educ=Education, Unemployed=Unemployment, Employed=Employment#, 
-               # Vote02=Voting.02, Vote05=Voting.05, 
-               # Party02=VotesByParty.02, Party05=VotesByParty.05, 
+               Educ=Education, Unemployed=Unemployment, Employed=Employment#,
+               # Vote02=Voting.02, Vote05=Voting.05,
+               # Party02=VotesByParty.02, Party05=VotesByParty.05,
                # Perc02=PercentByParty.02, Perc05=PercentByParty.05
                )
 
 group_paths <- lapply(groups, FUN= function(g) g[zenpath(length(g), method = "front.loaded")] )
 x <- group(de_elect, indices=group_paths)
 
-zenplot(x, pch = ".", cex=0.8)
+zenplot(x, pch = ".", cex=0.7, col = "grey10")
 
-## ------------------------------------------------------------------------
+## ----message=FALSE, warning=FALSE, fig.align="center", fig.width=10, fig.height=10----
+#
 ## Grouping variates in the German election data
 RegionsShort <- c("ED", "State", "density")
 PopDistShort <- c("men", "citizen", "18-25", "25-35", "35-60", "> 60")
@@ -204,13 +206,13 @@ for (i in 1:nGroups) {
   colnames(x[[i]]) <- longNames
 }
 
-zenplot(x, pch = ".")
+zenplot(x, pch = ".", cex=0.75)
 
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=10, fig.height=16----
 crossedGroups <- c(Employment, Education)
 crossedPaths <- zenpath(c(length(Employment), length(Education)), method="eulerian.cross")
-zenplot(de_elect[,crossedPaths])
+zenplot(de_elect[,crossedGroups][crossedPaths])
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=5, fig.height=2----
 earthquakes <- attenu[, c(1,2,4,5)]  # ignore the station id
@@ -228,7 +230,7 @@ zenplot(earthquakes,
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=4, fig.height=4----
 zenplot(earthquakes,
         plot1d= "arrow", plot2d="arrow",
-        width1d=1, width2d=2, 
+        width1d=1, width2d=2,
         turns=c("r","d","d","l","l","u","u"))
 
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=4, fig.height=4----
@@ -236,12 +238,12 @@ zenplot(earthquakes,
         plot1d = function(zargs, ...) {
           rect_1d_graphics(zargs,  ...)
           arrow_1d_graphics(zargs, col="firebrick", lwd=3, add=TRUE, ...)
-        }, 
+        },
         plot2d = function(zargs, ...) {
           rect_2d_graphics(zargs,  ...)
           arrow_2d_graphics(zargs, col="steelblue", lwd=3, lty=2, add=TRUE, ...)
-        }, 
-        width1d = 1, width2d = 2, 
+        },
+        width1d = 1, width2d = 2,
         turns=c("r","d","d","l","l","u","u"))
 
 ## ---- message=FALSE, warning=FALSE, results="hide", fig.align="center", fig.width=6, fig.height=3----
@@ -250,7 +252,7 @@ zenplot(earthquakes[,zenpath(ncol(earthquakes))],
         width1d = 1, width2d = 2, n2dcol=5,
         plot1d = function(zargs, ...) {
           r <- extract_1d(zargs) # extract arguments for 1d
-          col <- adjustcolor(if (r$horizontal) "firebrick" else "steelblue", 
+          col <- adjustcolor(if (r$horizontal) "firebrick" else "steelblue",
                              alpha.f = 0.7)
           hist_1d_graphics(zargs, col=col, ...)
           },
@@ -264,26 +266,6 @@ zenplot(earthquakes[,zenpath(ncol(earthquakes))],
                  xlim=xlim, ylim=ylim,
                  cex=0.3, col="black",  pch=19,
                  legend=FALSE, main="", axes=FALSE, ...)
-          
-          })
 
-## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=4, fig.height=4----
-zenplot(earthquakes,
-        plot2d="arrow",
-        plot1d= function(zargs, ...) {   
-          boxplot_1d_graphics(zargs, ...)
-          r <- extract_1d(zargs)
-          x <- r$x
-          if (r$horizontal){
-            locx <- median(x)
-            locy <- 1} else {
-            locy <- median(x)
-            locx <- 1
-            }
-          arrow_1d_graphics(zargs, loc=c(locx, locy), add=TRUE,
-                            col="red",
-                            ...)
-          },
-        width1d=1, width2d=2,  # now widths must be the same
-        turns=c("r","d","d","l","l","u","u"))
+          })
 

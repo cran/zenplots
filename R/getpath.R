@@ -39,22 +39,28 @@ move <- function(curpos, dir, method=c("in.occupancy", "in.plane"))
 ##' @param method character string indicating which zigzag method to use
 ##' @return turns
 ##' @author Marius Hofert and Wayne Oldford
-get_turns_for_zigzag <- function(nPlots, n2dcols,
-                                 method=c("tidy", "double.zigzag", "single.zigzag"))
+get_zigzag_turns <- function(nPlots, n2dcols,
+                             method = c("tidy", "double.zigzag", "single.zigzag"))
 {
     ## Main idea: Determine the pattern which repeats rowblock-wise
     ##            (after going to the right and then back to the left)
     stopifnot(nPlots >= 4, # smaller nPlots relate to special cases dealt with in get_path()
               n2dcols >= 2)
     method <- match.arg(method)
-    pattern2d <- rep(c("r", "l"), each=2*(n2dcols-1)) # r,r,..., l,l,... for 2d plots
-    vdirs2d1row <- if(method=="single.zigzag") rep("d", n2dcols-1) else {
+    ## 1) Define the horizontal 2d pattern of turns
+    h2dpattern <- rep(c("r", "l"), each = 2*(n2dcols-1)) # r,r,..., l,l,... for 2d plots
+    ## 2) Define the vertical 2d subpattern
+    v2dsubpattern <- if(method == "single.zigzag") rep("d", n2dcols-1) else {
         if(n2dcols <= 2) "d" else c(rep_len(c("d", "u" ), n2dcols-3), "d", "d") # up/down for 2d plots for one row (length = n2dcols - 1; so, e.g. only from right to left)
     }
-    vdirs2d <- rep(vdirs2d1row, times=2) # up/down for 2d plots for one block of rows (r,r,..., l,l,...)
-    pattern2d[2*seq_along(vdirs2d)] <- vdirs2d # merge the ups/downs into pattern2d
-    pattern <- rep(pattern2d, each=2) # bring in 1d plots (by repeating each direction twice)
-    c("d", rep_len(pattern, nPlots-1)) # attach the first 1d plot separately and repeat the repeat pattern as often as required
+    ## 3) Define the vertical 2d pattern
+    v2dpattern <- rep(v2dsubpattern, times = 2) # up/down for 2d plots for one block of rows (r,r,..., l,l,...)
+    ## 4) Merge the vertical 2d pattern into the horizontal 2d pattern
+    h2dpattern[2*seq_along(v2dpattern)] <- v2dpattern # merge the ups/downs into h2dpattern
+    ## 5) Repeat the merged 2d pattern to account for 1d plots
+    overallpattern <- rep(h2dpattern, each = 2) # bring in 1d plots (by repeating each direction twice)
+    ## 6) Repeat the overall pattern according to the total number of (1d or 2d) plots
+    c("d", rep_len(overallpattern, nPlots-1)) # attach the first 1d plot separately and repeat the repeat pattern as often as required
 }
 
 ##' @title Determine the next position to move to and the turn out of there
@@ -67,6 +73,8 @@ get_turns_for_zigzag <- function(nPlots, n2dcols,
 ##'         nextout: turn out of nextpos
 ##' @author Marius Hofert and Wayne Oldford
 ##' @note - This assumes that the last plot is a 1d plot!
+##'       - It also assumes that first1d = TRUE; will be adapted later in get_path()
+##'         in case first1d = FALSE.
 ##'       - We start in (1, 2) and also have an additional last column in the occupancy
 ##'         matrix to have the first and last column left in case we end up there with
 ##'         the last 1d plot; this cannot happen for 'zigzag' but for 'tidy'.
@@ -78,54 +86,52 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
     if(nPlotsLeft <= 0)
         stop("Wrong number of plots left.") # next_move_tidy() should not be called in this case
 
-    ## Deal with special cases first
+    ## 1) Deal with special cases first
     if(plotNo==1) return(list(nextpos=c(2, 2), nextout="r")) # 1st plot (1d); next move/turn is "r"
     if(plotNo==2) return(list(nextpos=c(2, 3), nextout="r")) # 2nd plot (2d); next move/turn is "r"
     if(plotNo==3) # 3rd plot (1d); next move/turn is either up (only if there's only 1 1d plot left) or down
         return(list(nextpos=c(2, 4), nextout=if(nPlotsLeft <= 2) "u" else "d"))
 
-    ## Now plotNo >= 4 and there are >= 1 plots left
+    ## 2) Now plotNo >= 4 and there are >= 1 plots left
     curpos <- curpath$positions[plotNo,] # current position
     curin  <- curpath$turns[plotNo-1] # turn into the current position
     curout <- curpath$turns[plotNo] # turn out of the current position
     nextpos <- move(curpos, curout) # next position to move to
 
-    ## If plotNo is even (2d plot)
-    ## Note: This case also applies if nPlotsLeft==1
+    ## 3) If plotNo is even (2d plot)
+    ##    Note: This case also applies if nPlotsLeft==1
     if(plotNo %%2 == 0)
         return(list(nextpos=nextpos, nextout=curout))
 
-    ## Now this is the case: plotNo is >= 5, odd (1d plot) and there are >= 2 plots left
+    ## Now we are in the case plotNo is >= 5, odd (1d plot) and there are >= 2 plots left
 
-    ## Determine the current horizontal moving direction.
-    ## If the current 1d plot is vertical (or: horizontal), the horizontal direction is the
-    ## turn into the current (or: last) position.
-    ## => We simply consider the turn into the current position and the
-    ##    one before to determine the horizontal moving direction.
+    ## 4) Determine the current horizontal moving direction.
+    ##    If the current 1d plot is vertical (or: horizontal), the horizontal direction is the
+    ##    turn into the current (or: last) position.
+    ##    => We simply consider the turn into the current position and the
+    ##       one before to determine the horizontal moving direction.
     rinlast2 <- "r" %in% curpath$turns[(plotNo-2):(plotNo-1)]
     linlast2 <- "l" %in% curpath$turns[(plotNo-2):(plotNo-1)]
     if((rinlast2 + linlast2) != 1) # defensive programming
         stop("Algorithm to determine horizontal moving direction is wrong. This should not happen.")
     horizdir <- if(rinlast2) "r" else "l" # current horizontal moving direction
 
-    ## Determine the distance to the (left or right) margin
+    ##    Determine the distance to the margin of the occupancy matrix in the horizontal moving direction
     ncolOcc <- ncol(curpath$occupancy)
     dist <- if(horizdir=="r") ncolOcc-curpos[2] else curpos[2]-1
     stopifnot(dist >= 0) # defensive programming
 
-    ## Auxiliary function for checking the existence of a position in the occupancy matrix
-    posExists <- function(pos, occupancy)
+    ## 5) We are sitting at a 1d plot and have to determine how to leave
+    ##    the next 2d plot
+    posExists <- function(pos, occupancy) # aux function for checking the existence of a position in the occupancy matrix
         (1 <= pos[1] && pos[1] <= nrow(occupancy)) &&
             (1 <= pos[2] && pos[2] <= ncol(occupancy))
+    nextout <- if(curout %in% c("d", "u")) { # 5.1)
 
-    ## We are sitting at a 1d plot and have to determine how to leave
-    ## the next 2d plot
-    nextout <- if(curout %in% c("d", "u")) {
-
-        ## The 1d plot is horizontal (curout "u" or "d")
+        ## 5.1) The 1d plot is horizontal (curout "u" or "d")
         if(dist == 0) stop("dist == 0. This should not happen.")
-        ## If we have at most 2 plots left, decide where to put the last 1d plot
-        if(nPlotsLeft <= 2) {
+        ##      If we have at most 2 plots left, decide where to put the last 1d plot
+        if(nPlotsLeft <= 2) { # 5.1.1)
             ## Check the location of the 2d plot which comes after the next 2d plot
             ## in opposite horizontal moving direction.
             pos2check <- c(curpos[1] + if(curout=="u") -1 else 1, curpos[2] + if(horizdir=="r") -2 else 2)
@@ -152,7 +158,7 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
                     horizdir
                 }
             }
-        } else { # nPlotsLeft >= 3 (=> at least two more 2d plots)
+        } else { # 5.1.2) nPlotsLeft >= 3 (=> at least two more 2d plots)
             ## Change the horizontal moving direction if and only if we are at
             ## the boundary (clear).
             if(dist <= 2) {
@@ -162,16 +168,16 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
             }
         }
 
-    } else { # curout "l" or "r"
+    } else { # 5.2) curout "l" or "r"
 
-        ## The 1d plot is vertical (curout "l" or "r")
+        ## 5.2) The 1d plot is vertical (curout "l" or "r")
         if(curpath$turns[plotNo-2] %in% c("l", "r")) # defensive programming; how we entered last 2d plot must be l or r
             stop("Last 2d plot was entered in the wrong direction. This should not happen.")
         if(dist <= 1) {
             stop("dist <= 1. This should not happen.") # ... as we don't call next_move_tidy() for the last 1d plot
         } else { # dist >= 2; note that dist==2 and dist==3 are possible
 
-            ## Auxiliary function to determine how many plots fit in the next U-turn
+            ## 5.2.1) Auxiliary function to determine how many plots fit in the next U-turn
             UturnLength <- function(curpos, horizdir, occupancy) {
                 ## Check whether 1 or 2 plot(s) fit in
                 pos2check <- c(curpos[1]-2, curpos[2] + if(horizdir=="r") 1 else -1)
@@ -194,18 +200,20 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
                 if(!exists || (exists && occupancy[pos2check[1], pos2check[2]] > 0))
                     return(8) else return(10) # here means "at least 10"
             }
-
             ## Determine the number of plots along the U-turn starting from the current position
-            Ulen <- UturnLength(curpos, horizdir=horizdir, occupancy=curpath$occupancy)
-            ## If in the second row or there are more plots left than can fit into a U-turn,
-            ## go down, else go up; note: if Ulen >= 10, we can always take
-            ## the U-turn, so we can always go up
+            Ulen <- UturnLength(curpos, horizdir = horizdir, occupancy = curpath$occupancy)
+
+            ## 5.2.2) If we are in the second row or there are more plots left than
+            ##        can fit into a U-turn, go down, else go up.
+            ##        Note: if Ulen >= 10, we can always take the U-turn, so we can always go up
             if(curpos[1] <= 2 || (Ulen < 10 && nPlotsLeft > Ulen)) "d" else "u"
 
         }
 
     }
-    list(nextpos=nextpos, nextout=nextout) # nextout = turn out of next position
+
+    ## 6) Return
+    list(nextpos = nextpos, nextout = nextout) # nextout = turn out of next position
 }
 
 ##' @title Computing the path according to the provided method
@@ -221,35 +229,41 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
 ##'         occupancy matrix) and the the occupancy matrix
 ##' @author Marius Hofert and Wayne Oldford
 get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden", "legal"),
-                     n2dplots, method = c("tidy", "double.zigzag", "single.zigzag"),
+                     n2dplots, method = c("tidy", "double.zigzag", "single.zigzag", "rectangular"),
                      first1d = TRUE, last1d = TRUE)
 {
-    ## Deal with the case that turns have been given (we need to construct
-    ## the positions in the occupancy matrix and the occupancy matrix itself)
+    ## 1) Deal with the case that turns have been given (we need to construct
+    ##    the positions in the occupancy matrix and the occupancy matrix itself)
     if(!is.null(turns)) {
-        hrange <- c(0, 0) # horizontal range covered so far
-        vrange <- c(0, 0) # vertical range covered so far
+
+        ## 1.1) Initialization
+        hlim <- c(0, 0) # horizontal limits covered so far
+        vlim <- c(0, 0) # vertical limits covered so far
         positions <- matrix(0, nrow=length(turns), ncol=2,
                             dimnames=list(NULL, c("x", "y"))) # matrix of positions
         loc <- c(0, 0) # where we are at the moment (start)
+        ## 1.2) Loop
         if(length(turns) > 1) { # if length(turns)==1, we only have one 1d plot (nothing to do as positions is already initialized with 0)
             for(i in 2:length(turns)) { # loop over all turns
                 loc <- move(loc, dir=turns[i-1]) # move to the next location according to turns
                 positions[i,] <- loc # update positions
-                if(loc[1] < hrange[1]) {
-                    hrange[1] <- loc[1] # extend the lower bound of hrange if necessary
-                } else if(loc[1] > hrange[2]) {
-                    hrange[2] <- loc[1] # extend the upper bound of hrange if necessary
+                if(loc[1] < hlim[1]) {
+                    hlim[1] <- loc[1] # extend the lower bound of hlim if necessary
+                } else if(loc[1] > hlim[2]) {
+                    hlim[2] <- loc[1] # extend the upper bound of hlim if necessary
                 }
-                if(loc[2] < vrange[1]) {
-                    vrange[1] <- loc[2] # extend the lower bound of vrange if necessary
-                } else if(loc[2] > vrange[2]) {
-                    vrange[2] <- loc[2] # extend the upper bound of vrange if necessary
+                if(loc[2] < vlim[1]) {
+                    vlim[1] <- loc[2] # extend the lower bound of vlim if necessary
+                } else if(loc[2] > vlim[2]) {
+                    vlim[2] <- loc[2] # extend the upper bound of vlim if necessary
                 }
             }
         }
+        ## 1.3) Shift
         min.pos <- apply(positions, 2, min) # get minimal visited row/column position
         positions <- sweep(positions, 2, min.pos) + 1 # substract these and add (1,1)
+
+        ## 1.4) Compute the occupancy matrix
         occupancy <- matrix(0, nrow=max(positions[,"x"]), ncol=max(positions[,"y"])) # occupancy matrix; note: already trimmed by construction
         for(i in 1:nrow(positions)) # loop over positions and fill occupancy matrix accordingly
             occupancy[positions[i,1], positions[i,2]] <- switch(turns[i],
@@ -258,10 +272,13 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                                                                 "d" = { 3 },
                                                                 "u" = { 4 },
                                                                 stop("Wrong 'turns'"))
-        return(list(turns=turns, positions=positions, occupancy=occupancy)) # return here; avoids huge 'else' below
+
+        ## (Early) return
+        return(list(turns = turns, positions = positions, occupancy = occupancy)) # return here; avoids huge 'else' below
+
     }
 
-    ## Now consider the case where turns has not been given => construct the path
+    ## 2) Now consider the case where turns has not been given => construct the path
 
     ## Checking
     stopifnot(n2dplots >= 0)
@@ -271,8 +288,48 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
         stop("If n2dplots >= 2, n2dcols must be >= 2.")
     method <- match.arg(method)
 
-    ## We start by dealing with three special cases (the same for all methods)
-    nPlots <- 2*n2dplots+1 # total number of plots (1d and 2d)
+    ## 2.1) Deal with method = "rectangular" first
+    if(method == "rectangular") {
+        nPlots <- 2 * n2dplots + 1 - !first1d - !last1d
+        ## Determine the number or rows required
+        n2drows <- ceiling(n2dplots/n2dcols)
+        ## Determine 'turns'
+        turns <- unlist(lapply(rep(c("r", "l"), length.out = n2drows),
+                               function(t) c("d", rep(t, 2*(n2dcols-1)), "d"))) # correct for a *full last* row if first1d == TRUE and last1d == FALSE
+        if(!first1d) turns <- turns[-1] # remove first element
+        if(last1d) turns <- c(turns, "d") # append last element
+        turns <- turns[seq_len(nPlots)] # grab out those we need
+        ## Determine 'positions'
+        positions <- matrix(, nrow = nPlots, ncol = 2, dimnames = list(NULL, c("x", "y"))) # positions
+        if(nPlots >= 1) positions[1,] <- c(1, 1) # first plot
+        if(nPlots >= 2) {
+            for(plotNo in 2:nPlots) {
+                turnOOcur <- turns[plotNo-1] # turn out of last position
+                if(turnOOcur == "r") {
+                    positions[plotNo,] <- positions[plotNo-1,] + c(0,1)
+                } else if(turnOOcur == "l") {
+                    positions[plotNo,] <- positions[plotNo-1,] + c(0,-1)
+                } else if(turnOOcur == "d") {
+                    positions[plotNo,] <- positions[plotNo-1,] + c(1,0)
+                } else stop("Wrong turn in 'rectangular' method. This should not happen.")
+            }
+        }
+        ## Determine occupancy matrix
+        occupancy <- matrix(0, nrow = positions[nPlots,1], ncol = min(max(positions[,2]), 2*n2dcols-1)) # positions
+        for(i in 1:nPlots) {
+            occupancy[positions[i,1], positions[i,2]] <- switch(turns[i],
+                                                                "l" = { 1 },
+                                                                "r" = { 2 },
+                                                                "d" = { 3 },
+                                                                "u" = { 4 }, # should not happen here
+                                                                stop("Wrong 'turns'"))
+        }
+        ## Return
+        return(list(turns = turns, positions = positions, occupancy = occupancy))
+    }
+
+    ## 2.2) We start by dealing with three special cases (the same for all methods)
+    nPlots <- 2 * n2dplots + 1 # total number of plots (1d and 2d; assumes first1d = TRUE; last1d = TRUE (will be trimmed off below if necessary))
     path <- if(nPlots <= 3) {
         switch(nPlots,
            { # nPlots = 1
@@ -298,14 +355,14 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                stop("Wrong 'nPlots'"))
     } else {
 
-        ## For nPlots >= 4, the repeating order depends on n2dcols
+        ## nPlots >= 4 (repeating order depends on n2dcols)
         turns <- character(nPlots) # how we leave every plot (1d or 2d)
         switch(method,
-               "double.zigzag" =, "single.zigzag" = {
+               "double.zigzag" =, "single.zigzag" = { # 2.2.1)
 
                    ## Main idea: Determine all turns right away, then build positions and
                    ##            occupancy matrix all from the turns
-                   turns <- get_turns_for_zigzag(nPlots, n2dcols=n2dcols, method=method)
+                   turns <- get_zigzag_turns(nPlots, n2dcols=n2dcols, method=method)
 
                    ## Build positions and occupancy matrix
                    ## Interpretation: 0: not occupied; 1--4: "l", "r", "d", "u"
@@ -343,7 +400,7 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                    list(turns=turns, positions=positions, occupancy=occupancy)
 
                },
-               "tidy" = {
+               "tidy" = { # 2.2.2)
 
                    ## Main idea: Build turns, positions and occupancy as we go along
                    ## Interpretation: 0: not occupied; 1--4: "l", "r", "d", "u"
@@ -485,5 +542,7 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
         ## Define (trimmed) path
         path <- list(turns = turns, positions = positions, occupancy = occupancy)
     }
+
+    ## Return the path
     path
 }

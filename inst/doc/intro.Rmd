@@ -1,6 +1,6 @@
 ---
-title: "Introduction to zenplots"
-author: "Marius Hofert and R.W. Oldford"
+title: Introduction to zenplots
+author: M. Hofert and R. W. Oldford
 date: '`r Sys.Date()`'
 output:
   html_vignette:
@@ -12,8 +12,10 @@ output:
     number_sections: yes
     toc: yes
   word_document: default
-vignette: |
-  %\VignetteEngine{knitr::rmarkdown} %\VignetteIndexEntry{Introduction to zenplots}
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Introduction to zenplots}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, message=FALSE, warning=FALSE}
@@ -21,13 +23,12 @@ library(zenplots)
 ```
 
 # All pairs
-help(zenplot)
 A `zenplot` can show the same information as a `pairs` plot but with two
 important display differences.
 
 
 First, the matrix organization of the `pairs` layout is replaced by the
-``zig-zag'' layout of `zenplot`.  Second, the number of plots produced is about
+"zig-zag" layout of `zenplot`.  Second, the number of plots produced is about
 half that of a `pairs` plot allowing each plot in a `zenplot` to be given more
 visual space.
 
@@ -130,7 +131,7 @@ zenpath(5, method = "balanced")
 
 The differences are easier to see when there are more nodes.  Below, we show the
 index ordering (top to bottom) for each of these three methods when the graph
-has 15 nodes, here labelled "1" to "9", followed by "a" to "f" (to make plotting
+has 15 nodes, here labelled"a" to "o" (to make plotting
 easier).
 ```{r zenpath, echo= FALSE, include=FALSE, fig.align="center"}
 parOptions <- par(mfrow=c(1,3), mar=c(4, 2,2,0),oma=rep(0,4))
@@ -138,25 +139,26 @@ back <- zenpath(15, method = "back.loaded")
 balanced <- zenpath(15, method = "balanced")
 front <- zenpath(15, method = "front.loaded")
 n <- length(zenpath(15))
+plot_chars <- letters[1:15]
 plot(back, n - 1:n,type="b", ylab="", xlab="", main="Back loaded",
-     cex=0.75, pch=c(1:9, letters[1:6])[back], bty="n", xaxt="n", yaxt="n")
+     pch=plot_chars[back], bty="n", xaxt="n", yaxt="n")
 plot(balanced, n - 1:n,type="b", ylab="", xlab="", main="Balanced",
-     cex=0.75, pch=c(1:9, letters[1:6])[balanced], bty="n", xaxt="n", yaxt="n")
+     pch=plot_chars[balanced], bty="n", xaxt="n", yaxt="n")
 plot(front, n - 1:n,type="b", ylab="", xlab="", main="Front loaded",
-     cex=0.75, pch=c(1:9, letters[1:6])[front], bty="n", xaxt="n", yaxt="n")
+     pch=plot_chars[front], bty="n", xaxt="n", yaxt="n")
 par(parOptions)
 ```
 
 Starting from the bottom (the back of the sequence), "back loading" has the last
-index, "f",  complete its pairing with every other index before "e" completes
-all of its pairings.  All of "e"'s pairings complete before those of "d", all of
-"d"'s before "c", and so on until the last pairing of "1" and "2" are completed.
+index, "o",  complete its pairing with every other index before "n" completes
+all of its pairings.  All of "n"'s pairings complete before those of "m", all of
+"m"'s before "l", and so on until the last pairing of "a" and "b" are completed.
 Note that the last indices still appear at the end of the sequence (since the
 sequence begins at the top of the display and moves down). The term "back
 loading" is used here in a double sense - the later (back) indices have their
 pairings appear as closely together as possible towards the back of the returned
-sequence.  A simple reversal, that is `rev(zenpath(15, method =
-"back.loaded"))`,  would have them appear at the beginning of the sequence.  In
+sequence.  A simple reversal, that is `rev(zenpath(15, method = "back.loaded"))`,
+would have them appear at the beginning of the sequence.  In
 this case the "back loading" would only be in one sense, namely that the later
 indexed (back) nodes appear first in the reversed sequence.
 
@@ -181,7 +183,7 @@ First a pairs plot:
 ## so as to give maximal space to the individual scatterplots.
 ## We also choose a different plotting character and reduce
 ## its size to better distinguish points.
-pairs(attenu, oma=rep(0,4), gap=0, xaxt="n", yaxt="n", cex=0.75, pch=19)
+pairs(attenu, oma=rep(0,4), gap=0, xaxt="n", yaxt="n")
 ```
 
 We now effect a display of all pairs using `zenplot`.
@@ -193,7 +195,7 @@ We now effect a display of all pairs using `zenplot`.
 ## The last argument, n2dcol, is chosen so that the zenplot
 ## has the same number of plots across the page as does the
 ## pairs plot.
-zenplot(attenu[, zenpath(ncol(attenu))], cex=0.75, pch=19, n2dcol=4)
+zenplot(attenu[, zenpath(ncol(attenu))], n2dcol=4)
 ```
 
 Each display shows scatterplot of all `choose(5,2) =` `r choose(ncol(attenu),
@@ -247,14 +249,14 @@ The `zenplot` layout can be made more compact by different choices of the
 argument `n2dcol` (odd values provide a more compact layout).  For example,
 ```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=10, fig.height=6}
 ## The default n2dcol is used
-zenplot(attenu[, zenpath(ncol(attenu))], cex=0.75, pch=19, n2dcol=5)
+zenplot(attenu[, zenpath(ncol(attenu))], n2dcol=5)
 ```
 
 By default, `zenplot` tries to determine a value for `n2dcol` that minimizes the
 space unused by its zigzag layout.
 ```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=6, fig.height=10}
 ## The default n2dcol is used
-zenplot(attenu[, zenpath(ncol(attenu))], cex=0.75, pch=19)
+zenplot(attenu[, zenpath(ncol(attenu))])
 ```
 with layout directions as
 ```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=6, fig.height=10}
@@ -444,19 +446,19 @@ The groups can now be used to explore internal group relations for many
 different groups in the same plot. Here the following helper function comes in handy.
 
 ```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=11, fig.height=14}
-groups <- list(Regions=Regions, Pop=PopDist, 
-               Change = PopChange, Agric=Agriculture, 
+groups <- list(Regions=Regions, Pop=PopDist,
+               Change = PopChange, Agric=Agriculture,
                Mining=Mining, Apt=Apt,  Cars=Motorized,
-               Educ=Education, Unemployed=Unemployment, Employed=Employment#, 
-               # Vote02=Voting.02, Vote05=Voting.05, 
-               # Party02=VotesByParty.02, Party05=VotesByParty.05, 
+               Educ=Education, Unemployed=Unemployment, Employed=Employment#,
+               # Vote02=Voting.02, Vote05=Voting.05,
+               # Party02=VotesByParty.02, Party05=VotesByParty.05,
                # Perc02=PercentByParty.02, Perc05=PercentByParty.05
                )
 
 group_paths <- lapply(groups, FUN= function(g) g[zenpath(length(g), method = "front.loaded")] )
 x <- group(de_elect, indices=group_paths)
 
-zenplot(x, pch = ".", cex=0.8)
+zenplot(x, pch = ".", cex=0.7, col = "grey10")
 ```
 
 All pairs within each group are presented following the zigzag pattern; each
@@ -465,8 +467,8 @@ the pairwise relationships between variates within all groups.
 
 The plot can be improved some by using shorter names for the variates.  With a little work we can replace these within each group of `x`.
 
-
-```{r}
+```{r message=FALSE, warning=FALSE, fig.align="center", fig.width=10, fig.height=10}
+#
 ## Grouping variates in the German election data
 RegionsShort <- c("ED", "State", "density")
 PopDistShort <- c("men", "citizen", "18-25", "25-35", "35-60", "> 60")
@@ -510,19 +512,19 @@ for (i in 1:nGroups) {
   colnames(x[[i]]) <- longNames
 }
 
-zenplot(x, pch = ".")
+zenplot(x, pch = ".", cex=0.75)
 
 ```
 
 ## Crossing pairs between groups
 
-It can also be of interest to compare variates between groups. For example, 
+It can also be of interest to compare variates between groups. For example,
 to compare the various levels of education with the employment categories.
 
 ```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=10, fig.height=16}
 crossedGroups <- c(Employment, Education)
 crossedPaths <- zenpath(c(length(Employment), length(Education)), method="eulerian.cross")
-zenplot(de_elect[,crossedPaths])
+zenplot(de_elect[,crossedGroups][crossedPaths])
 ```
 
 # Other plots
@@ -586,7 +588,7 @@ the directions of the turns.
 ```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=4, fig.height=4}
 zenplot(earthquakes,
         plot1d= "arrow", plot2d="arrow",
-        width1d=1, width2d=2, 
+        width1d=1, width2d=2,
         turns=c("r","d","d","l","l","u","u"))
 ```
 
@@ -596,12 +598,12 @@ zenplot(earthquakes,
         plot1d = function(zargs, ...) {
           rect_1d_graphics(zargs,  ...)
           arrow_1d_graphics(zargs, col="firebrick", lwd=3, add=TRUE, ...)
-        }, 
+        },
         plot2d = function(zargs, ...) {
           rect_2d_graphics(zargs,  ...)
           arrow_2d_graphics(zargs, col="steelblue", lwd=3, lty=2, add=TRUE, ...)
-        }, 
-        width1d = 1, width2d = 2, 
+        },
+        width1d = 1, width2d = 2,
         turns=c("r","d","d","l","l","u","u"))
 ```
 
@@ -676,7 +678,7 @@ zenplot(earthquakes[,zenpath(ncol(earthquakes))],
         width1d = 1, width2d = 2, n2dcol=5,
         plot1d = function(zargs, ...) {
           r <- extract_1d(zargs) # extract arguments for 1d
-          col <- adjustcolor(if (r$horizontal) "firebrick" else "steelblue", 
+          col <- adjustcolor(if (r$horizontal) "firebrick" else "steelblue",
                              alpha.f = 0.7)
           hist_1d_graphics(zargs, col=col, ...)
           },
@@ -690,7 +692,7 @@ zenplot(earthquakes[,zenpath(ncol(earthquakes))],
                  xlim=xlim, ylim=ylim,
                  cex=0.3, col="black",  pch=19,
                  legend=FALSE, main="", axes=FALSE, ...)
-          
+
           })
 ```
 
@@ -762,25 +764,3 @@ For a `plot2d` function, the  `plotID` consists of
 
 All other functions in the ellipsis, `...`, are passed on to the drawing
 functions.
-
-
-```{r, message=FALSE, warning=FALSE, fig.align="center", fig.width=4, fig.height=4}
-zenplot(earthquakes,
-        plot2d="arrow",
-        plot1d= function(zargs, ...) {   
-          boxplot_1d_graphics(zargs, ...)
-          r <- extract_1d(zargs)
-          x <- r$x
-          if (r$horizontal){
-            locx <- median(x)
-            locy <- 1} else {
-            locy <- median(x)
-            locx <- 1
-            }
-          arrow_1d_graphics(zargs, loc=c(locx, locy), add=TRUE,
-                            col="red",
-                            ...)
-          },
-        width1d=1, width2d=2,  # now widths must be the same
-        turns=c("r","d","d","l","l","u","u"))
-```

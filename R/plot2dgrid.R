@@ -209,7 +209,7 @@ density_2d_grid <- function(zargs,
     invisible(res)
 }
 
-##' @title Axes arrows in 2d
+##' @title Axes arrow
 ##' @param zargs argument list as passed from zenplot()
 ##' @param angle angle of the arrow head (see ?arrow)
 ##' @param length length of the arrow in [0,1] from tip to base
