@@ -137,7 +137,7 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
   containing the path and layout. For \code{pkg = "grid"}, the whole plot
   as a \code{\link[grid]{grob}} (grid object) is returned additionally.
   For \code{pkg = "loon"}, the whole plot as a
-  \code{\link[loon]{loon}} object and the toplevel tk object is returned additionally.
+  loon object and the toplevel tk object is returned additionally.
 }
 \author{Marius Hofert and Wayne Oldford}
 %% \references{
@@ -238,6 +238,14 @@ z. <- lapply(z, function(z.) {
     z.
 })
 zenplot(z.)
+
+
+### A dynamic plot based on 'loon' (if installed and R compiled with tcl support)
+
+\donttest{
+if(requireNamespace("loon", quietly = TRUE))
+    zenplot(x, pkg = "loon")
+}
 
 
 ### Providing your own turns ###################################################

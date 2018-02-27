@@ -29,13 +29,13 @@ group_2d_loon <- function(zargs,
     ii <- if(turns[num-1] == "u" || turns[num] == "u") rev(ii) else ii
     labs <- paste0(glabs[ii], collapse = "\n") # labels (in the correct order for displaying the group change)
     if(is.null(baseplot))
-        baseplot <- l_plot(showLabels = FALSE,
-                           showScales = FALSE,
-                           showGuides = FALSE,
-                           parent = parent)
-    l_layer_text(baseplot, text = labs,
-                 x = xlim[1] + 0.5 * diff(xlim), y = ylim[1] + 0.5 * diff(ylim),
-                 angle = rot, size = size, ...)
+        baseplot <- loon::l_plot(showLabels = FALSE,
+                                 showScales = FALSE,
+                                 showGuides = FALSE,
+                                 parent = parent)
+    loon::l_layer_text(baseplot, text = labs,
+                       x = xlim[1] + 0.5 * diff(xlim), y = ylim[1] + 0.5 * diff(ylim),
+                       angle = rot, size = size, ...)
     baseplot
 }
 
@@ -47,18 +47,18 @@ group_2d_loon <- function(zargs,
 ##' @param linkingGroup The initial linking group
 ##' @param linkingKey List of IDs to link on
 ##' @param glyph String determining the glyph type to be displayed for points, default is an open circle: "ocircle"
-##' @param itemlabel A vector of strings to serve as the itemlabel
-##' @param showItemlabels Logical determing whether itemlabels display on mouse hover
+##' @param itemLabel A vector of strings to serve as the item label
+##' @param showItemLabels Logical determing whether item labels display on mouse hover
 ##' @param parent The tk parent for this loon plot widget
 ##' @param group... A list of arguments passed to group_2d_loon (or NULL)
-##' @param ... Additional arguments passed to l_plot()
+##' @param ... Additional arguments passed to loon::l_plot()
 ##' @return A loon plot
 ##' @author Marius Hofert and Wayne Oldford
 points_2d_loon <- function(zargs,
                            showLabels = FALSE, showScales = FALSE,
                            showGuides = FALSE, linkingGroup = NULL,
                            linkingKey = NULL, glyph = "ocircle",
-                           itemlabel = NULL, showItemlabels = TRUE,
+                           itemLabel = NULL, showItemLabels = TRUE,
                            parent = NULL, group... = NULL, ...)
 {
     r <- extract_2d(zargs)
@@ -74,18 +74,18 @@ points_2d_loon <- function(zargs,
         if (is.null(linkingGroup))
             linkingGroup <-  paste0("zenplot parent =", parent$ID)
         ## Remove NAs
-        ldata <- na_omit_loon(x, y, linkingKey, itemlabel)
+        ldata <- na_omit_loon(x, y, linkingKey, itemLabel)
         ## TODO fix box or not: if(box) box() # plot the box
         ## Do the plot
-        baseplot <-  l_plot(x = ldata$x, y = ldata$y,
+        baseplot <-  loon::l_plot(x = ldata$x, y = ldata$y,
                             linkingGroup = linkingGroup,
                             linkingKey = ldata$linkingKey,
                             showLabels = showLabels,
                             showScales = showScales,
                             showGuides = showGuides,
                             glyph = glyph,
-                            itemlabel = ldata$itemlabel,
-                            showItemlabels = showItemlabels,
+                            itemLabel = ldata$itemLabel,
+                            showItemLabels = showItemLabels,
                             parent = parent, ...)
         l_ispace_config(baseplot = baseplot,
                         ispace = zargs$ispace,
@@ -114,7 +114,7 @@ points_2d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
 ##' @param group... A list of arguments passed to group_2d_loon (or NULL)
-##' @param ... Additional parameters passed to l_layer_line()
+##' @param ... Additional parameters passed to loon::l_layer_line()
 ##' @return invisible()
 ##' @author Marius Hofert and Wayne Oldford
 density_2d_loon <- function(zargs, ngrids = 25,
@@ -188,7 +188,7 @@ density_2d_loon <- function(zargs, ngrids = 25,
 
         ## Set up the base plot if needed
         if (is.null(baseplot))
-            baseplot <- l_plot(showLabels = showLabels,
+            baseplot <- loon::l_plot(showLabels = showLabels,
                                showScales = showScales,
                                showGuides = showGuides,
                                parent = parent)
@@ -197,7 +197,7 @@ density_2d_loon <- function(zargs, ngrids = 25,
         lapply(1:length(contours), # go over all contours
                function(i){
             contour <- contours[[i]]
-            l_layer_line(baseplot,
+            loon::l_layer_line(baseplot,
                          x = contour$x,
                          y = contour$y,
                          color = ccol.[i],
@@ -235,7 +235,7 @@ density_2d_loon <- function(zargs, ngrids = 25,
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
 ##' @param group... A list of arguments passed to group_2d_loon (or NULL)
-##' @param ... Additional arguments passed to l_plot()
+##' @param ... Additional arguments passed to loon::l_plot()
 ##' @return the loon plot
 ##' @author Marius Hofert and Wayne Oldford
 ##' @note Inspired by https://stat.ethz.ch/pipermail/r-help/2004-October/059525.html
@@ -266,7 +266,7 @@ axes_2d_loon <- function(zargs,
 
         ## Get the base plot if not supplied
         if(is.null(baseplot))
-            baseplot <- l_plot(showLabels = showLabels,
+            baseplot <- loon::l_plot(showLabels = showLabels,
                                showScales = showScales,
                                showGuides = showGuides,
                                linkingGroup = linkingGroup,
@@ -278,54 +278,54 @@ axes_2d_loon <- function(zargs,
         maxza <- apply(za, 1, max)
         maxza[2] <- 0
         arrHead <- c(exrange[2], eyrange[1]) + za - maxza
-        x_line <- l_layer_line(widget = baseplot,
+        x_line <- loon::l_layer_line(widget = baseplot,
                                x = exrange, y = rep(eyrange[1],2),
                                label = "Horizontal axis line",
                                color = color, index = "end", ...)
-        x_arrowhead <- l_layer_line(widget = baseplot,
+        x_arrowhead <- loon::l_layer_line(widget = baseplot,
                                     x = arrHead[1,], y = arrHead[2,],
                                     label = "Horizontal axis arrowhead",
                                     color = color, index = "end", ...)
 
         ## First create the group layer
-        x_arrow <- l_layer_group(widget = baseplot,
+        x_arrow <- loon::l_layer_group(widget = baseplot,
                                  label = "Horizontal axis arrow",
                                  index = "end")
 
         ## Demote the two pieces into the x_arrow
-        l_layer_demote(baseplot, x_arrowhead)
-        l_layer_demote(baseplot, x_line)
+        loon::l_layer_demote(baseplot, x_arrowhead)
+        loon::l_layer_demote(baseplot, x_line)
 
         ## Draw the vertical axis
         za <- zenarrow("u", length = length, angle = angle)
         maxza <- apply(za, 1, max)
         maxza[1] <- 0
         arrHead <- c(exrange[1], eyrange[2]) + za - maxza
-        y_line <- l_layer_line(widget = baseplot,
+        y_line <- loon::l_layer_line(widget = baseplot,
                                x = rep(exrange[1],2), y = eyrange,
                                label = "Vertical axis line",
                                color = color,
                                index = "end", ...)
-        y_arrowhead <- l_layer_line(widget = baseplot,
+        y_arrowhead <- loon::l_layer_line(widget = baseplot,
                                     x = arrHead[1,], y = arrHead[2,],
                                     label = "Vertical axis arrowhead",
                                     color = color,
                                     index = "end", ...)
         ## First create the group layer
-        y_arrow <- l_layer_group(widget = baseplot,
+        y_arrow <- loon::l_layer_group(widget = baseplot,
                                  label = "Vertical axis arrow",
                                  index = "end")
 
         ## Demote the two pieces into the x_arrow
-        l_layer_demote(baseplot, y_arrowhead)
-        l_layer_demote(baseplot, y_line)
+        loon::l_layer_demote(baseplot, y_arrowhead)
+        loon::l_layer_demote(baseplot, y_line)
 
         ## All together
-        axes <- l_layer_group(widget = baseplot,
+        axes <- loon::l_layer_group(widget = baseplot,
                               label = "Axis arrows",
                               index = "end")
-        l_layer_demote(baseplot, y_arrow)
-        l_layer_demote(baseplot, x_arrow)
+        loon::l_layer_demote(baseplot, y_arrow)
+        loon::l_layer_demote(baseplot, x_arrow)
         check_zargs(zargs, "ispace")
         l_ispace_config(baseplot = baseplot,
                         ispace = zargs$ispace,
@@ -353,7 +353,7 @@ axes_2d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
 ##' @param group... A list of arguments passed to group_2d_loon (or NULL)
-##' @param ... Additional parameters passed to l_layer_line()
+##' @param ... Additional parameters passed to loon::l_layer_line()
 ##' @return the plot (invisibly)
 ##' @author Marius Hofert and Wayne Oldford
 arrow_2d_loon <- function(zargs,
@@ -373,14 +373,14 @@ arrow_2d_loon <- function(zargs,
     if(same.group) {
         arr <- loc + zenarrow(turns[num], length = length, angle = angle)
         if(is.null(baseplot))
-            baseplot <- l_plot(showLabels = showLabels,
+            baseplot <- loon::l_plot(showLabels = showLabels,
                                showScales = showScales,
                                showGuides = showGuides,
                                linkingGroup = linkingGroup,
                                parent = parent)
         if(is.null(color))
             color <- baseplot['foreground']
-        l_layer_line(widget = baseplot, x = arr[1,], y = arr[2,], color = color, ...)
+        loon::l_layer_line(widget = baseplot, x = arr[1,], y = arr[2,], color = color, ...)
         baseplot
     } else {
         args <- c(list(zargs = zargs, glabs = glabs), group...)
@@ -402,8 +402,8 @@ arrow_2d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
 ##' @param group... A list of arguments passed to group_2d_loon (or NULL)
-##' @param ... Additional parameters passed to l_layer_text(...)
-##' @return The base l_plot with the added text layer
+##' @param ... Additional parameters passed to loon::l_layer_text(...)
+##' @return The base loon::l_plot with the added text layer
 ##' @author Marius Hofert and Wayne Oldford
 rect_2d_loon <- function(zargs, loc.x = NULL, loc.y = NULL, color = NULL,
                          fill = NULL, lwd = 1, linkingGroup = NULL,
@@ -420,7 +420,7 @@ rect_2d_loon <- function(zargs, loc.x = NULL, loc.y = NULL, color = NULL,
 
     res <- if(same.group) {
         if(is.null(baseplot))
-            baseplot <- l_plot(showLabels = showLabels,
+            baseplot <- loon::l_plot(showLabels = showLabels,
                                showScales = showScales,
                                showGuides = showGuides,
                                linkingGroup = linkingGroup,
@@ -431,7 +431,7 @@ rect_2d_loon <- function(zargs, loc.x = NULL, loc.y = NULL, color = NULL,
         if (is.null(loc.x)) loc.x <- 0:1
         if (is.null(loc.y)) loc.y <- 0:1
 
-        l_layer_rectangle(baseplot,
+        loon::l_layer_rectangle(baseplot,
                           x = loc.x,
                           y = loc.y,
                           label = label,
@@ -462,8 +462,8 @@ rect_2d_loon <- function(zargs, loc.x = NULL, loc.y = NULL, color = NULL,
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
 ##' @param group... A list of arguments passed to group_2d_loon (or NULL)
-##' @param ... Additional parameters passed to l_layer_text(...)
-##' @return The base l_plot with the added text layer
+##' @param ... Additional parameters passed to loon::l_layer_text(...)
+##' @return The base loon::l_plot with the added text layer
 ##' @author Marius Hofert and Wayne Oldford
 label_2d_loon <- function(zargs,
                           loc = NULL, label = NULL, rot = 0, size = 8,
@@ -486,7 +486,7 @@ label_2d_loon <- function(zargs,
         ## TODO fix box or not: if(box) box() # plot the box
         ## Do the plot
         if(is.null(baseplot))
-            baseplot <- l_plot(showLabels = showLabels,
+            baseplot <- loon::l_plot(showLabels = showLabels,
                                showScales = showScales,
                                showGuides = showGuides,
                                linkingGroup = linkingGroup,
@@ -497,7 +497,7 @@ label_2d_loon <- function(zargs,
         if(is.null(label)) label <- paste0("(",xlab,", ",ylab,")")
         if (is.null(loc)) loc <- c(0.50, 0.25)
 
-        l_layer_text(baseplot, text = label,
+        loon::l_layer_text(baseplot, text = label,
                      x = loc[1], y = loc[2], angle = rot, size = size,
                      color = color, ...)
         if (box) {

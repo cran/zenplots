@@ -3,8 +3,8 @@
 
 ##' @title Rug plot in 1d
 ##' @param zargs The argument list as passed from zenplot()
-##' @param ... Additional parameters passed to l_plot()
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_plot()
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 ##' @note Just calls points_1d_loon with glyph = "osquare" to preserve linking
 rug_1d_loon <- function(zargs, ...)
@@ -20,18 +20,18 @@ rug_1d_loon <- function(zargs, ...)
 ##' @param showGuides Logical determining whether the background guidelines are
 ##'        displayed
 ##' @param glyph The plot glyph
-##' @param itemlabel A vector of strings to serve as the itemlabels
-##' @param showItemlabels Logical determing whether itemlabels display on mouse
+##' @param itemLabel A vector of strings to serve as the item labels
+##' @param showItemLabels Logical determing whether item labels display on mouse
 ##'        hover
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_plot()
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_plot()
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 points_1d_loon <- function(zargs,
                            linkingGroup = NULL, linkingKey = NULL,
                            showLabels = FALSE, showScales = FALSE,
                            showGuides = FALSE, glyph = "ocircle",
-                           itemlabel = NULL, showItemlabels = TRUE,
+                           itemLabel = NULL, showItemLabels = TRUE,
                            parent = NULL, ...)
 {
     r <- extract_1d(zargs)
@@ -47,37 +47,37 @@ points_1d_loon <- function(zargs,
         linkingGroup <- paste0("zenplot parent =", parent$ID)
 
     ## Remove NAs
-    ldata <- na_omit_loon(x = x, linkingKey = linkingKey, itemlabel = itemlabel)
+    ldata <- na_omit_loon(x = x, linkingKey = linkingKey, itemLabel = itemLabel)
 
     ## Main
     x <- ldata$x
     linkingKey <- ldata$linkingKey
-    itemlabel <- ldata$itemlabel
+    itemLabel <- ldata$itemLabel
     check_zargs(zargs, "ispace")
     if(horizontal) {
-        baseplot <- l_plot(x = x, y = rep(0, length(x)),
+        baseplot <- loon::l_plot(x = x, y = rep(0, length(x)),
                            linkingGroup = linkingGroup,
                            linkingKey = linkingKey,
                            showLabels = FALSE,
                            showScales = showScales,
                            showGuides = showGuides,
                            glyph = glyph,
-                           itemlabel = itemlabel,
-                           showItemlabels = showItemlabels,
+                           itemLabel = itemLabel,
+                           showItemLabels = showItemLabels,
                            parent = parent,
                            ...)
         l_ispace_config(baseplot = baseplot,
                         ispace = zargs$ispace,
                         xlim = xlim)
     } else {
-        baseplot <- l_plot(x = rep(0, length(x)), y = x,
+        baseplot <- loon::l_plot(x = rep(0, length(x)), y = x,
                            linkingGroup = linkingGroup,
                            showLabels = FALSE,
                            showScales = showScales,
                            showGuides = showGuides,
                            glyph = glyph,
-                           itemlabel = itemlabel,
-                           showItemlabels = showItemlabels,
+                           itemLabel = itemLabel,
+                           showItemLabels = showItemLabels,
                            parent = parent,
                            ...)
         l_ispace_config(baseplot = baseplot,
@@ -97,29 +97,29 @@ points_1d_loon <- function(zargs,
 ##'        are displayed
 ##' @param glyph Glyph to be used for points, default is the open circle:
 ##'        "ocircle"
-##' @param itemlabel A vector of strings to serve as the itemlabels
-##' @param showItemlabels Logical determing whether itemlabels display on mouse
+##' @param itemLabel A vector of strings to serve as the item labels
+##' @param showItemLabels Logical determing whether item labels display on mouse
 ##'        hover
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_plot()
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_plot()
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 jitter_1d_loon <- function(zargs,
                            linkingGroup = NULL, showLabels = FALSE,
                            showScales = FALSE, showGuides = FALSE,
-                           glyph = "ocircle", itemlabel = NULL,
-                           showItemlabels = TRUE, parent = NULL, ...)
+                           glyph = "ocircle", itemLabel = NULL,
+                           showItemLabels = TRUE, parent = NULL, ...)
 {
     r <- extract_1d(zargs)
     x <- r$x
     x <- na.omit(x)
     xlim <- r$xlim
     horizontal <- r$horizontal
-    if(is.null(itemlabel)) {
+    if(is.null(itemLabel)) {
         if(!is.null(rownames(x))) {
-            itemlabel <- rownames(x)
+            itemLabel <- rownames(x)
         } else {
-            itemlabel <- sapply(1:length(x),
+            itemLabel <- sapply(1:length(x),
                                 function (i) {paste0("point", i)})
         }
     }
@@ -127,28 +127,28 @@ jitter_1d_loon <- function(zargs,
         linkingGroup <- paste0("zenplot parent =", parent$ID)
     check_zargs(zargs, "ispace")
     if(horizontal) {
-        baseplot <- l_plot(x = x,  y = runif(length(x)),
+        baseplot <- loon::l_plot(x = x,  y = runif(length(x)),
                            linkingGroup = linkingGroup,
                            showLabels = showLabels,
                            showScales = showScales,
                            showGuides = showGuides,
                            glyph = glyph,
-                           itemlabel = itemlabel,
-                           showItemlabels = showItemlabels,
+                           itemLabel = itemLabel,
+                           showItemLabels = showItemLabels,
                            parent = parent,
                            ...)
         l_ispace_config(baseplot = baseplot,
                         ispace = zargs$ispace,
                         xlim = xlim)
     } else {
-        baseplot <- l_plot(x = runif(length(x)),  y = x,
+        baseplot <- loon::l_plot(x = runif(length(x)),  y = x,
                            linkingGroup = linkingGroup,
                            showLabels = showLabels,
                            showScales = showScales,
                            showGuides = showGuides,
                            glyph = glyph,
-                           itemlabel = itemlabel,
-                           showItemlabels = showItemlabels,
+                           itemLabel = itemLabel,
+                           showItemLabels = showItemLabels,
                            parent = parent,
                            ...)
         l_ispace_config(baseplot = baseplot,
@@ -175,8 +175,8 @@ jitter_1d_loon <- function(zargs,
 ##' @param showGuides Logical determining whether the background guidelines are
 ##'        displayed
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_hist()
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_hist()
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 hist_1d_loon <- function(zargs,
                          breaks = NULL, color = NULL, fill = NULL,
@@ -198,7 +198,7 @@ hist_1d_loon <- function(zargs,
 
     ## Main
     if(all(is.na(x))) {
-        h <- l_hist(linkingGroup = linkingGroup)
+        h <- loon::l_hist(linkingGroup = linkingGroup)
     } else {
         if(is.null(fill)) {
             if(is.null(color)) {
@@ -218,7 +218,7 @@ hist_1d_loon <- function(zargs,
             breaks <- seq(from = xRange[1], to = xRange[2], length.out = 21)
         binInfo <- hist(x, breaks = breaks, plot = FALSE)
         binBoundaries <- binInfo$breaks
-        h <- l_hist(x = x,
+        h <- loon::l_hist(x = x,
                     yshows = 'density',
                     origin = binBoundaries[1],
                     binwidth = abs(diff(binBoundaries[1:2])),
@@ -268,8 +268,8 @@ hist_1d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be
 ##'        layered
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_layer()
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_layer()
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 density_1d_loon <- function(zargs,
                             density.args = list(), method = c("single", "double"),
@@ -290,7 +290,7 @@ density_1d_loon <- function(zargs,
 
     ## Main
     if(all(is.na(x))) {
-        if (is.null(baseplot)) baseplot <- l_plot(linkingGroup = linkingGroup)
+        if (is.null(baseplot)) baseplot <- loon::l_plot(linkingGroup = linkingGroup)
     } else {
         dens <- do.call(density, args = c(list(x), density.args))
         xvals <- dens$x
@@ -317,7 +317,7 @@ density_1d_loon <- function(zargs,
 
         ## Get the base plot if not supplied
         if(is.null(baseplot)) {
-            baseplot <- l_plot(showLabels = showLabels,
+            baseplot <- loon::l_plot(showLabels = showLabels,
                                showScales = showScales,
                                showGuides = showGuides,
                                linkingGroup = linkingGroup,
@@ -342,14 +342,14 @@ density_1d_loon <- function(zargs,
             }
         }
 
-        densityPoly <- l_layer_polygon(baseplot,
+        densityPoly <- loon::l_layer_polygon(baseplot,
                                        x = x,
                                        y = y,
                                        color = fill,
                                        linecolor = linecolor,
                                        linewidth = linewidth,
                                        ...)
-        ## l_scaleto_layer(baseplot, densityPoly)
+        ## loon::l_scaleto_layer(baseplot, densityPoly)
     }
 
     if (!horizontal)  baseplot['swapAxes'] <- TRUE
@@ -378,7 +378,7 @@ density_1d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
 ##' @param ... Additional parameters passed to gpar()
-##' @return A loon l_plot(...)
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 boxplot_1d_loon <- function(zargs,
                             color = NULL, linecolor = NULL, lwd = 2,
@@ -394,7 +394,7 @@ boxplot_1d_loon <- function(zargs,
     loonInfo <- na_omit_loon(x)
     x <- loonInfo$x
     linkingKey <- loonInfo$linkingKey
-    itemlabel <- loonInfo$itemlabel
+    itemLabel <- loonInfo$itemLabel
 
     if (is.null(linkingGroup))
         linkingGroup <- paste0("zenplot parent =", parent$ID)
@@ -423,7 +423,7 @@ boxplot_1d_loon <- function(zargs,
     ## upper.outliers <- x[x > upper.adjacent.value]
     ## lower.outliers <- x[x < lower.adjacent.value]
     outlying <- (x < lower.adjacent.value) | (x > upper.adjacent.value)
-    outlierLabels <- itemlabel[outlying]
+    outlierLabels <- itemLabel[outlying]
     outlierLinkingKey <- linkingKey[outlying]
     outliers <- x[outlying]
     nOutliers <- sum(outlying)
@@ -431,7 +431,7 @@ boxplot_1d_loon <- function(zargs,
 
     ## Get the base plot if not supplied
     if(is.null(baseplot)) {
-        baseplot <- l_plot(showLabels = showLabels,
+        baseplot <- loon::l_plot(showLabels = showLabels,
                            showScales = showScales,
                            showGuides = showGuides,
                            parent = parent)
@@ -439,28 +439,28 @@ boxplot_1d_loon <- function(zargs,
 
     ## Build order matters to get the layering right.
     ## Build the whiskers
-    highadjacent <- l_layer_line(baseplot,
+    highadjacent <- loon::l_layer_line(baseplot,
                                  x = c(upper.adjacent.value, upper.adjacent.value),
                                  y = c(0.25, 0.75),
                                  label = "Upper adjacent value",
                                  color = linecolor,
                                  linewidth = lwd,
                                  ...)
-    highwhisker <- l_layer_line(baseplot,
+    highwhisker <- loon::l_layer_line(baseplot,
                                 x = c(Q3,upper.adjacent.value),
                                 y = c(0.5, 0.5),
                                 label = "Upper whisker",
                                 color = linecolor,
                                 linewidth = lwd,
                                 ...)
-    lowadjacent <- l_layer_line(baseplot,
+    lowadjacent <- loon::l_layer_line(baseplot,
                                 x = c(lower.adjacent.value,lower.adjacent.value),
                                 y = c(0.25, 0.75),
                                 label = "Lower adjacent value",
                                 color = linecolor,
                                 linewidth = lwd,
                                 ...)
-    lowwhisker <- l_layer_line(baseplot,
+    lowwhisker <- loon::l_layer_line(baseplot,
                                x = c(Q1,lower.adjacent.value),
                                y = c(0.5, 0.5),
                                label = "Lower whisker",
@@ -469,7 +469,7 @@ boxplot_1d_loon <- function(zargs,
                                ...)
 
     ## Build the box
-    highbox <- l_layer_rectangle(baseplot,
+    highbox <- loon::l_layer_rectangle(baseplot,
                                  x = c(median, Q3),
                                  y = c(0, 1),
                                  label = "upper half of middle 50%",
@@ -477,7 +477,7 @@ boxplot_1d_loon <- function(zargs,
                                  linecolor = linecolor,
                                  linewidth = lwd,
                                  ...)
-    lowbox <- l_layer_rectangle(baseplot,
+    lowbox <- loon::l_layer_rectangle(baseplot,
                                 x = c(median, Q1),
                                 y = c(0, 1),
                                 label = "lower half of middle 50%",
@@ -485,7 +485,7 @@ boxplot_1d_loon <- function(zargs,
                                 linecolor = linecolor,
                                 linewidth = lwd,
                                 ...)
-    medianLine <- l_layer_line(baseplot,
+    medianLine <- loon::l_layer_line(baseplot,
                                x = c(median, median),
                                y = c(0, 1),
                                label = "Median line",
@@ -495,7 +495,7 @@ boxplot_1d_loon <- function(zargs,
 
     ## Gather the outliers (if any)
     if (existOutliers){
-        if (is.null(itemlabel)){
+        if (is.null(itemLabel)){
             outlierIndices <- which (x %in% outliers)
             if (!is.null(rownames(x))) {
                 outlierLabels <- rownames(x)[outlierIndices]
@@ -506,12 +506,12 @@ boxplot_1d_loon <- function(zargs,
              })
             }
 
-        } else outlierLabels <- itemlabel
+        } else outlierLabels <- itemLabel
 
-        outlierpoints <- l_layer_points(baseplot,
+        outlierpoints <- loon::l_layer_points(baseplot,
                                         x = outliers,
                                         y = rep(0.5, nOutliers),
-                                        label = itemlabel,
+                                        label = itemLabel,
                                         color = color,
                                         ...)
     }
@@ -540,8 +540,8 @@ boxplot_1d_loon <- function(zargs,
 ##'        displayed
 ##' @param baseplot If non-null the base plot on which the plot should be layered
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_layer_line(...)
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_layer_line(...)
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 arrow_1d_loon <- function(zargs,
                           loc = c(0.5, 0.5), length = 0.6, angle = NULL,
@@ -582,8 +582,8 @@ arrow_1d_loon <- function(zargs,
 ##' @param baseplot If non-NULL the base plot on which the plot should be
 ##'        layered
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_layer_text(...)
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_layer_text(...)
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 rect_1d_loon <- function(zargs,
                          loc.x = NULL, loc.y = NULL, color = NULL,
@@ -602,7 +602,7 @@ rect_1d_loon <- function(zargs,
 
     ## Get the base plot if not supplied
     if(is.null(baseplot)) {
-        baseplot <- l_plot(showLabels = showLabels,
+        baseplot <- loon::l_plot(showLabels = showLabels,
                            showScales = showScales,
                            showGuides = showGuides,
                            linkingGroup  = linkingGroup,
@@ -615,26 +615,26 @@ rect_1d_loon <- function(zargs,
     label <- paste("Rectangle:", colnames(x))
 
     if (is.null(loc.x)) loc.x <- 0:1
-                                        # if (is.null(loc.x)) loc.x <- c(baseplot['panX'] +
-                                        #                                  (0.1) * baseplot['deltaX']/baseplot['zoomX'],
-                                        #                                baseplot['panX'] +
-                                        #                                  (0.9) * (baseplot['deltaX']/baseplot['zoomX']))
-                                        # c(baseplot['panX'],
-                                        #   baseplot['panX'] +
-                                        #     (baseplot['deltaX']/baseplot['zoomX']))
-                                        # #0:1
+    ## if (is.null(loc.x)) loc.x <- c(baseplot['panX'] +
+    ##                                  (0.1) * baseplot['deltaX']/baseplot['zoomX'],
+    ##                                baseplot['panX'] +
+    ##                                  (0.9) * (baseplot['deltaX']/baseplot['zoomX']))
+    ## c(baseplot['panX'],
+    ##   baseplot['panX'] +
+    ##     (baseplot['deltaX']/baseplot['zoomX']))
+    ## #0:1
     if (is.null(loc.y)) loc.y <- 0:1
-                                        # if (is.null(loc.y)) loc.y <- c(baseplot['panY'] +
-                                        #                                  (0.2) * (baseplot['deltaY']/baseplot['zoomY']),
-                                        #                                baseplot['panY'] +
-                                        #                                  (0.8) * (baseplot['deltaY']/baseplot['zoomY']))
-                                        # c(baseplot['panY'],
-                                        #   baseplot['panY'] +
-                                        #     (baseplot['deltaY']/baseplot['zoomY']))
-                                        #0:1
+    ## if (is.null(loc.y)) loc.y <- c(baseplot['panY'] +
+    ##                                  (0.2) * (baseplot['deltaY']/baseplot['zoomY']),
+    ##                                baseplot['panY'] +
+    ##                                  (0.8) * (baseplot['deltaY']/baseplot['zoomY']))
+    ## c(baseplot['panY'],
+    ##   baseplot['panY'] +
+    ##     (baseplot['deltaY']/baseplot['zoomY']))
+    ## #0:1
 
     ## Build the box
-    l_layer_rectangle(baseplot,
+    loon::l_layer_rectangle(baseplot,
                       x = loc.x,
                       y = loc.y,
                       label = label,
@@ -669,8 +669,8 @@ rect_1d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be
 ##'        layered
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_layer_text(...)
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_layer_text(...)
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 lines_1d_loon <- function(zargs,
                           loc.x = NULL, loc.y = NULL,
@@ -695,14 +695,14 @@ lines_1d_loon <- function(zargs,
 
     ## Get the base plot if not supplied
     if(is.null(baseplot)) {
-        baseplot <- l_plot(showLabels = showLabels,
+        baseplot <- loon::l_plot(showLabels = showLabels,
                            showScales = showScales,
                            showGuides = showGuides,
                            parent = parent)
     }
     if(is.null(color)) color <- baseplot['foreground']
 
-    l_layer_line(widget = baseplot, x = loc.x, y = loc.y,
+    loon::l_layer_line(widget = baseplot, x = loc.x, y = loc.y,
                  color = color, linewidth = lwd, ...)
 
     if (!horizontal) baseplot['swapAxes'] <- TRUE
@@ -734,8 +734,8 @@ lines_1d_loon <- function(zargs,
 ##' @param baseplot If non-null the base plot on which the plot should be
 ##'        layered
 ##' @param parent The tk parent for this loon plot widget
-##' @param ... Additional parameters passed to l_layer_text(...)
-##' @return A loon l_plot(...)
+##' @param ... Additional parameters passed to loon::l_layer_text(...)
+##' @return A loon loon::l_plot(...)
 ##' @author Marius Hofert and Wayne Oldford
 label_1d_loon <- function(zargs,
                           loc.x = NULL, loc.y = NULL, label = NULL,
@@ -757,14 +757,14 @@ label_1d_loon <- function(zargs,
         linkingGroup <- paste0("zenplot parent =", parent$ID)
 
     if(is.null(baseplot))
-        baseplot <- l_plot(showLabels = showLabels,
+        baseplot <- loon::l_plot(showLabels = showLabels,
                            showScales = showScales,
                            showGuides = showGuides,
                            parent = parent)
 
     if(is.null(color)) color <- baseplot['foreground']
 
-    l_layer_text(baseplot, text = label,
+    loon::l_layer_text(baseplot, text = label,
                  x = loc.x,
                  y = loc.y,
                  angle = rot,
@@ -776,7 +776,6 @@ label_1d_loon <- function(zargs,
                      color = color,
                      baseplot = baseplot, parent = parent,
                      index="end", ...)
-
     }
 
     if (!horizontal) baseplot['swapAxes'] <- TRUE

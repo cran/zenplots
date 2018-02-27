@@ -21,7 +21,7 @@
 \alias{layout_2d_loon}
 \title{Loon-Based Plotting Functions}
 \description{
-    The 1d and 2d plotting functions based on the \R package \pkg{loon}.
+    The 1d and 2d plotting functions based on the \R package loon.
 }
 \usage{
 rug_1d_loon(zargs, ...)
@@ -29,13 +29,13 @@ points_1d_loon(zargs,
                linkingGroup = NULL, linkingKey = NULL,
                showLabels = FALSE, showScales = FALSE,
                showGuides = FALSE, glyph = "ocircle",
-               itemlabel = NULL, showItemlabels = TRUE,
+               itemLabel = NULL, showItemLabels = TRUE,
                parent = NULL, ...)
 jitter_1d_loon(zargs,
                linkingGroup = NULL, showLabels = FALSE,
                showScales = FALSE, showGuides = FALSE,
-               glyph = "ocircle", itemlabel = NULL,
-               showItemlabels = TRUE, parent = NULL, ...)
+               glyph = "ocircle", itemLabel = NULL,
+               showItemLabels = TRUE, parent = NULL, ...)
 hist_1d_loon(zargs,
              breaks = NULL, color = NULL, fill = NULL,
              showStackedColors = TRUE,
@@ -87,7 +87,7 @@ points_2d_loon(zargs,
                showLabels = FALSE, showScales = FALSE,
                showGuides = FALSE, linkingGroup = NULL,
                linkingKey = NULL, glyph = "ocircle",
-               itemlabel = NULL, showItemlabels = TRUE,
+               itemLabel = NULL, showItemLabels = TRUE,
                parent = NULL, group... = NULL, ...)
 density_2d_loon(zargs, ngrids = 25,
                 ccol = NULL, color = NULL, clwd = NULL, lwd = NULL,
@@ -132,8 +132,8 @@ layout_2d_loon(zargs, ...)
     guidelines are displayed.}
   \item{glyph}{string determining the glyph type to be displayed for
     points, default is an open circle: "ocircle".}
-  \item{itemlabel}{vector of strings to serve as the itemlabel.}
-  \item{showItemlabels}{logical determing whether itemlabels display on
+  \item{itemLabel}{vector of strings to serve as the item label.}
+  \item{showItemLabels}{logical determing whether item labels display on
     mouse hover.}
   \item{parent}{tk parent for this loon plot widget.}
   \item{density.args}{\code{\link{list}()} of arguments for
@@ -192,13 +192,13 @@ layout_2d_loon(zargs, ...)
     of the contour lines. These can be single values or
     vectors (which are then recycled).}
   \item{eps}{distance by which the axes are moved away from the plot region.}
-  \item{\dots}{additional arguments passed to the underlying \pkg{loon} functions.}
+  \item{\dots}{additional arguments passed to the underlying loon functions.}
 }
 \value{
-  The path, layout and a \code{\link{loon}} object (returned invisibly).
+  The path, layout and a loon object (returned invisibly).
 }
 \details{
-    These functions based on the \R package \pkg{loon} are provided as
+    These functions based on the \R package loon are provided as
     useful choices for the arguments \code{plot1d} and \code{plot2d} of
     \code{\link{zenplot}()}. See \code{\link{zenplot}()} how to use
     them, their source code for how to adjust them, their source code

@@ -175,9 +175,9 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     ## Check pkg
     ## Note: If you provide your own function, you have to choose 'pkg' accordingly
     pkg <- match.arg(pkg)
-    if(pkg == "grid" && !requireNamespace("grid"))
+    if(pkg == "grid" && !requireNamespace("grid", quietly = TRUE))
         stop("Package 'grid' is not available.")
-    if(pkg == "loon" && !requireNamespace("loon"))
+    if(pkg == "loon" && !requireNamespace("loon", quietly = TRUE))
         stop("Package 'loon' is not available.")
 
     ## Check plot1d
@@ -454,7 +454,7 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
 
             ## Plot
             newPlot <- if(plot.NULL[i]) { # no plot
-                l_plot(showLabels = FALSE, showScales = FALSE)
+                loon::l_plot(showLabels = FALSE, showScales = FALSE)
             } else { # plot
                 if(dims[i] == 1) {
                     do.call(plot1d, args = c(list(zargs = zargs1d, parent=parent), .args))
@@ -471,11 +471,11 @@ zenplot <- function(x, turns = NULL, first1d = TRUE, last1d = TRUE,
         }
 
         ## Resize the parent so that all plots fit
-        l_resize(tt, 600, 600)
+        loon::l_resize(tt, 600, 600)
         ## Resize all plots
         for(p in loonPlots)
             tkconfigure(paste0(p,'.canvas'), width=1, height=1)
-        ## l_configure(p, showLabels=FALSE, showScales=FALSE)
+        ## loon::l_configure(p, showLabels=FALSE, showScales=FALSE)
 
         ## Set the row widths/weights
         rowWeights <- round(heights * layoutHeight)

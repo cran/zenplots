@@ -12,12 +12,12 @@ l_is_hist <- function (plot) grepl("hist", plot)
 ##'        if NULL then it's ignored.
 ##' @param linkingKey The vector of keys used to define links between points,
 ##'        of the same length as x; if NULL it will be 0:(length(x)-1).
-##' @param itemlabel The vector of labels for the points,
+##' @param itemLabel The vector of labels for the points,
 ##'        of the same length as x; if NULL it will be constructed.
-##' @return A list(x, y, linkingKey, itemlabel) where any NA in x or y will
+##' @return A list(x, y, linkingKey, itemLabel) where any NA in x or y will
 ##'         have been omitted from all
 ##' @author R. W. Oldford
-na_omit_loon <- function(x, y = NULL, linkingKey = NULL, itemlabel = NULL)
+na_omit_loon <- function(x, y = NULL, linkingKey = NULL, itemLabel = NULL)
 {
     if (missing(x)) stop("x must be provided")
     ## Check for linkingKey
@@ -31,17 +31,17 @@ na_omit_loon <- function(x, y = NULL, linkingKey = NULL, itemlabel = NULL)
     }
     x <- x[notNA,,drop = FALSE]
     linkingKey <- linkingKey[notNA]
-    ## Fix up itemlabel
-    if(is.null(itemlabel)) {
-        itemlabel  <- rownames(x)
-        if(is.null(itemlabel)) {
-            itemlabel <- sapply(linkingKey, function (key) paste0("point", key))
-        } else itemlabel <- itemlabel[notNA]
+    ## Fix up itemLabel
+    if(is.null(itemLabel)) {
+        itemLabel  <- rownames(x)
+        if(is.null(itemLabel)) {
+            itemLabel <- sapply(linkingKey, function (key) paste0("point", key))
+        } else itemLabel <- itemLabel[notNA]
     }
     ## Return
     list(x = x, # if (is.null(x)) NULL else list(x),
          y = y, # if (is.null(y)) NULL else list(y),
-         linkingKey = linkingKey, itemlabel = itemlabel)
+         linkingKey = linkingKey, itemLabel = itemLabel)
 }
 
 ##' @title Configuring a loon plot to accommodate ispace
@@ -51,7 +51,7 @@ na_omit_loon <- function(x, y = NULL, linkingKey = NULL, itemlabel = NULL)
 ##' @param y The y data
 ##' @param xlim The x-axis limits; if NULL, the data limits are used
 ##' @param ylim The y-axis limits; if NULL, the data limits are used
-##' @param ... Additional arguments passed to l_configure
+##' @param ... Additional arguments passed to loon::l_configure
 ##' @return The baseplot
 ##' @author R. W. Oldford
 l_ispace_config <- function(baseplot, ispace = NULL,
@@ -85,7 +85,7 @@ l_ispace_config <- function(baseplot, ispace = NULL,
     deltaYrange <- diff(yrange) * (1 + sum(ispace[c(1,3)]))
     yBottom <- yrange[1] - ispace[1] * diff(yrange)
     ## The configuration
-    l_configure(baseplot,
+    loon::l_configure(baseplot,
                 panX = xLeft, panY = yBottom,
                 zoomX = baseplot['deltaX']/ deltaXrange,
                 zoomY = baseplot['deltaY']/ deltaYrange, ...)
