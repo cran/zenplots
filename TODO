@@ -1,7 +1,23 @@
 ### TODO #######################################################################
 
-- Bug under macOS (gdb fails):
-  zenplots::zenplot(matrix(rnorm(100), ncol = 5)) # then close the device => address 0xe0000060, cause 'memory not mapped' (dev.off() works, though)
+- Bug under macOS (gdb fails; works fine under Linux):
+  source("http://bioconductor.org/biocLite.R")
+  biocLite("graph") # correctly installs in version independent library
+  biocLite("Rgraphviz")
+  install.packages(c("TSP", "gtools", "PairViz", "zenplots"))
+  zenplots::zenplot(matrix(rnorm(100), ncol = 5))
+  # => after the plot window is opened and the plot finished, close the
+  plot window. Check the R process. Under Mac, I see:
+
+   *** caught segfault ***
+  address 0x18, cause 'memory not mapped'
+
+  Possible actions:
+  1: abort (with core dump, if enabled)
+  2: normal R exit
+  3: exit R without saving workspace
+  4: exit R saving workspace
+
 - rownames of 'x' are lost after burst (maybe force it on every column?)
   *might* be a problem for time series
 - Maybe we can speed-up the computation of a full Eulerian and (thus?) avoid the

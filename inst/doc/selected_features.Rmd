@@ -3,22 +3,22 @@ title: 'Zigzag expanded navigation plots in R: The R package zenplots'
 author: M. Hofert and R. W. Oldford
 date: '`r Sys.Date()`'
 output:
-  html_vignette:
-    css: style.css
+  rmarkdown::html_vignette: # lighter version than 'rmarkdown::html_document'; see https://bookdown.org/yihui/rmarkdown/r-package-vignette.html; there is also knitr:::html_vignette but it just calls rmarkdown::html_document with a custom .css
+    css: style.css # see 3.8 in https://bookdown.org/yihui/rmarkdown/r-package-vignette.html
 vignette: >
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Zigzag expanded navigation plots in R: The R package zenplots}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 This vignette accompanies the paper "Zigzag expanded navigation plots in R: The R package zenplots".
-Note that sections are numbered (or omitted) accordingly. Furthermore, it is
+Note that sections are numbered accordingly (or omitted). Furthermore, it is
 recommended to read the paper to follow this vignette.
 
 
 ## 2 Zenplots
 
 As example data, we use the `olive` data set:
-```{r}
+```{r, message = FALSE}
 library(zenplots)
 data(olive)
 ```
@@ -82,11 +82,11 @@ zenplot(olive2, n2dcols = 6, plot1d = "layout", plot2d = "layout",
 ```
 
 Note that there is also `method = "rectangular"` (leaving the zigzagging zenplot paradigm but
-useful for laying out 2d plots which are not necessarily connected through a variable; note
-that in this case, one would typically also show different 1d plots as the labeling is rather
-confusing):
+being useful for laying out 2d plots which are not necessarily connected through a variable; note
+that in this case, we omit the 1d plots as the default (labels) is rather confusing in this
+example):
 ```{r, fig.align = "center", fig.width = 8, fig.height = 5.4}
-zenplot(olive2, n2dcols = 6, plot1d = "layout", plot2d = "layout",
+zenplot(olive2, n2dcols = 6, plot1d = "arrow", plot2d = "layout",
         method = "rectangular")
 ```
 
@@ -125,7 +125,7 @@ str(zenpath)
 ```{r, eval = FALSE}
 function (x, pairs = NULL,
           method = c("front.loaded", "back.loaded", "balanced",
-                     "eulerian.cross", "eulerian.weighted", "strictly.weighted"),
+                     "eulerian.cross", "greedy.weighted", "strictly.weighted"),
           decreasing = TRUE)
 ```
 
@@ -136,7 +136,7 @@ zenpath(5, method = "back.loaded")
 zenpath(5, method = "balanced")
 ```
 
-This method considers two groups: One of size three, the other of size five.
+The following method considers two groups: One of size three, the other of size five.
 The sequence of pairs is constructed such that the first variable comes from the first group,
 the second from the second.
 ```{r}
@@ -147,7 +147,7 @@ Reproducing Figure 4:
 ```{r, fig.align = "center", fig.width = 6, fig.height = 9}
 oliveAcids <- olive[, !names(olive) %in% c("area", "region")] # acids only
 zpath <- zenpath(ncol(oliveAcids)) # all pairs
-zenplot(as.matrix(oliveAcids)[, zpath], plot1d = "hist", plot2d = "density")
+zenplot(oliveAcids[, zpath], plot1d = "hist", plot2d = "density")
 ```
 
 
@@ -155,8 +155,9 @@ zenplot(as.matrix(oliveAcids)[, zpath], plot1d = "hist", plot2d = "density")
 
 ### 4.3 Custom layout and plots -- a spiral of ggplots example
 
-Reproducing Figure 5:
-```{r, fig.align = "center", fig.width = 8, fig.height = 7.2}
+Figure 5 can be reproduced as follows (note that we do not show the plot
+here due to a CRAN issue when running this vignette):
+```{r, fig.align = "center", fig.width = 8, fig.height = 7.2, eval = FALSE}
 path <- c(1,2,3,1,4,2,5,1,6,2,7,1,8,2,3,4,5,3,6,4,7,3,8,4,5,6,7,5,8,6,7,8)
 turns <- c("l",
            "d","d","r","r","d","d","r","r","u","u","r","r","u","u","r","r",
@@ -166,23 +167,23 @@ turns <- c("l",
 
 library(ggplot2) # for ggplot2-based 2d plots
 stopifnot(packageVersion("ggplot2") >= "2.2.1") # need 2.2.1 or higher
-ggplot2d <- function(zargs) { # define the 2d plot function
-               r <- extract_2d(zargs) # extract results from zargs
-               num2d <- zargs$num/2 # plot number of 2d plots
-               df <- data.frame(x = as.numeric(r$x), y = as.numeric(r$y))
-               p <- ggplot() +
-                 geom_point(data = df, aes(x = x, y = y), cex = 0.1) +
-                 theme(axis.line = element_blank(),
-                       axis.ticks = element_blank(),
-                       axis.text.x = element_blank(),
-                       axis.text.y = element_blank(),
-                       axis.title.x = element_blank(),
-                       axis.title.y = element_blank())
-               if(num2d == 1) p <- p +
-                 theme(panel.background = element_rect(fill = 'royalblue3'))
-               if(num2d == (length(zargs$turns)-1)/2) p <- p +
-                 theme(panel.background = element_rect(fill = 'maroon3'))
-               ggplot_gtable(ggplot_build(p))
+ggplot2d <- function(zargs) {
+  r <- extract_2d(zargs)
+  num2d <- zargs$num/2
+  df <- data.frame(x = unlist(r$x), y = unlist(r$y))
+  p <- ggplot() +
+    geom_point(data = df, aes(x = x, y = y), cex = 0.1) +
+    theme(axis.line = element_blank(),
+          axis.ticks = element_blank(),
+          axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank())
+  if(num2d == 1) p <- p +
+    theme(panel.background = element_rect(fill = 'royalblue3'))
+  if(num2d == (length(zargs$turns)-1)/2) p <- p +
+    theme(panel.background = element_rect(fill = 'maroon3'))
+  ggplot_gtable(ggplot_build(p))
 }
 
 zenplot(as.matrix(oliveAcids)[,path], turns = turns, pkg = "grid",
@@ -207,15 +208,16 @@ zenplot(oliveAcids.by.area, labs = list(group = NULL))
 ```
 ```{r, fig.align = "center", fig.width = 6, fig.height = 8}
 zenplot(oliveAcids.by.area, lim = "groupwise", labs = list(sep = " - "),
-        plot1d = function(zargs) label_1d_graphics(zargs, cex = 0.8))
-
+        plot1d = function(zargs) label_1d_graphics(zargs, cex = 0.8),
+        plot2d = function(zargs)
+            points_2d_graphics(zargs, group... = list(sep = "\n - \n")))
 ```
 
 
 ### 4.5 Custom zenpaths
 
 Find the "convexity" scagnostic for each pair of olive acids.
-```{r}
+```{r, message = FALSE}
 library(scagnostics)
 Y <- scagnostics(oliveAcids) # compute scagnostics (scatter-plot diagonstics)
 X <- Y["Convex",] # pick out component 'convex'
@@ -250,7 +252,7 @@ Connect them:
 
 Build the corresponding list of matrices:
 ```{r}
-oliveAcids.grouped <- group(oliveAcids, indices = cezpath) # group data for (zen)plotting
+oliveAcids.grouped <- groupData(oliveAcids, indices = cezpath) # group data for (zen)plotting
 ```
 
 Reproducing Figure 8 (zenplot of the six pairs of acids with largest "convexity" scagnostic):
@@ -305,4 +307,3 @@ underlying `unfold()`:
 n2dcols <- ncol(olive) - 1 # number of faces of the hypercube
 stopifnot(identical(res, unfold(nfaces = n2dcols)))
 ```
-

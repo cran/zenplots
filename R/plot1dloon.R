@@ -35,7 +35,7 @@ points_1d_loon <- function(zargs,
                            parent = NULL, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     xlim <- r$xlim
     horizontal <- r$horizontal
 
@@ -111,7 +111,7 @@ jitter_1d_loon <- function(zargs,
                            showItemLabels = TRUE, parent = NULL, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     x <- na.omit(x)
     xlim <- r$xlim
     horizontal <- r$horizontal
@@ -187,7 +187,7 @@ hist_1d_loon <- function(zargs,
 {
     ## Extracting the information
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     xlim <- r$xlim
     horizontal <- r$horizontal
     loonInfo <- na_omit_loon(x = x)
@@ -280,7 +280,7 @@ density_1d_loon <- function(zargs,
 {
     ## Extracting the information
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     x <- na_omit_loon(x)$x
     xlim <- r$xlim
     horizontal <- r$horizontal
@@ -388,7 +388,7 @@ boxplot_1d_loon <- function(zargs,
 {
     ## Extracting the information
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     xlim <- r$xlim
     horizontal <- r$horizontal
     loonInfo <- na_omit_loon(x)
@@ -595,7 +595,7 @@ rect_1d_loon <- function(zargs,
     r <- extract_1d(zargs)
     horizontal <- r$horizontal
     xlim <- r$xlim
-    x <- r$x
+    x <- as.matrix(r$x)
 
     if (is.null(linkingGroup))
         linkingGroup <- paste0("zenplot parent =", parent$ID)
@@ -682,7 +682,8 @@ lines_1d_loon <- function(zargs,
 {
     r <- extract_1d(zargs)
     horizontal <- r$horizontal
-    ldata <- na_omit_loon(r$x)
+    x <- as.matrix(r$x)
+    ldata <- na_omit_loon(x)
     xlim <- r$xlim
 
     x <- ldata$x
@@ -746,7 +747,7 @@ label_1d_loon <- function(zargs,
 {
     r <- extract_1d(zargs)
     horizontal <- r$horizontal
-    x <- r$x
+    x <- as.matrix(r$x)
 
     if(is.null(loc.y)) loc.y <- 0.5
     if(is.null(loc.x)) {loc.x <- 0.5}

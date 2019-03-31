@@ -3,55 +3,60 @@
 \alias{extract_pairs}
 \alias{connect_pairs}
 \alias{graph_pairs}
-\alias{group}
-\title{(Group) Indices to Subset a Matrix for a Zenplot}
+\alias{groupData}
+\alias{indexData}
+\title{Constructing Zenpaths and Related Tools}
 \description{
-  Constructing (possibly grouped) indices which can be used to subset
-  a data matrix for plotting via a zenplot.
+  Constructing zenpaths and tools for extracting, connecting and
+  displaying pairs, as well as, grouping and indexing data structures.
 }
 \usage{
 zenpath(x, pairs = NULL,
         method = c("front.loaded", "back.loaded", "balanced",
-                   "eulerian.cross", "eulerian.weighted", "strictly.weighted"),
+                   "eulerian.cross", "greedy.weighted", "strictly.weighted"),
         decreasing = TRUE)
 extract_pairs(x, n)
 connect_pairs(x, duplicate.rm = FALSE)
 graph_pairs(x, var.names = NULL)
-group(x, indices)
+groupData(x, indices, byrow = FALSE)
+indexData(x, indices)
 }
 \arguments{
   \item{x}{for
     \describe{
-      \item{\code{zenpath}:}{for \code{method}
+      \item{\code{zenpath()}:}{for \code{method}
 	\describe{
 	  \item{\code{"front.loaded"}:}{single \code{\link{integer}}.}
 	  \item{\code{"back.loaded"}:}{as for \code{method = "front.loaded"}.}
 	  \item{\code{"balanced"}:}{as for \code{method = "front.loaded"}.}
 	  \item{\code{"eulerian.cross"}:}{two \code{\link{integer}}s
 	    representing the group sizes.}
-	  \item{\code{"eulerian.weighted"}:}{\code{\link{numeric}} weight
+	  \item{\code{"greedy.weighted"}:}{\code{\link{numeric}} weight
 	    \code{\link{vector}} (or
 	    \code{\link{matrix}} or distance matrix).}
 	  \item{\code{"strictly.weighted"}:}{as for
-	    \code{method = "eulerian.weighted"}.}
+	    \code{method = "greedy.weighted"}.}
 	}
       }
-      \item{\code{extract_pairs}:}{the path, a \code{\link{vector}} or
+      \item{\code{extract_pairs()}:}{the path, a \code{\link{vector}} or
 	\code{\link{list}} of indices of the variables to be plotted.}
-      \item{\code{connect_pairs}:}{two-column \code{\link{matrix}} or
+      \item{\code{connect_pairs()}:}{two-column \code{\link{matrix}} or
 	a \code{\link{list}} containing vectors of length two representing
 	the pairs to be connected.}
-      \item{\code{graph_pairs}:}{\code{\link{matrix}} or \code{\link{list}}
+      \item{\code{graph_pairs()}:}{\code{\link{matrix}} or \code{\link{list}}
         of pairs along a zenpath. Can also be a list containing vectors
 	of length larger than two (then being interpreted as connected
 	pairs).}
-      \item{\code{group}:}{\code{\link{matrix}} (or an object
+      \item{\code{groupData()}:}{\code{\link{matrix}} (or an object
 	convertible to such via \code{\link{as.matrix}()}).}
+      \item{\code{indexData()}:}{\code{\link{matrix}} or
+	\code{\link{data.frame}} (most useful for the latter).}
   }}
   \item{pairs}{two-column \code{\link{matrix}} containing (row-wise)
     the pairs of connected variables to be sorted according to the
     weights. \code{pairs} is only used for methods
-    \code{eulerian.weighted}, \code{strictly.weighted}.}
+    \code{greedy.weighted}, \code{strictly.weighted} and can be
+    \code{NULL} in which case a default is constructed in lexicographical order.}
   \item{method}{\code{\link{character}} string indicating the sorting
     method to be used. Available are:
     \describe{
@@ -64,10 +69,12 @@ group(x, indices)
 	(a Hamiltonian Decomposition).}
       \item{\code{"eulerian.cross"}:}{generate a sequence of pairs such
 	that each is formed with one variable from each group.}
-      \item{\code{"eulerian.weighted"}:}{sort all pairs according to a
+      \item{\code{"greedy.weighted"}:}{sort all pairs according to a
 	greedy (heuristic) Euler path visiting each edge precisely once.}
       \item{\code{"strictly.weighted"}:}{this method strictly respects the order
-	given by the weights.}
+	given by the weights, so the first, second, third, etc. adjacent pair of
+        numbers of the output of \code{zenpath()} corresponds to the pair with largest,
+        second-largest, third-largest, etc. weight.}
   }}
   \item{decreasing}{\code{\link{logical}} indicating whether the
     sorting is done according to increasing or decreasing weights.}
@@ -79,13 +86,21 @@ group(x, indices)
   \item{duplicate.rm}{\code{\link{logical}} indicating whether equal
     pairs (up to permutation) are omitted.}
   \item{var.names}{names of the variables appearing in \code{x}.}
-  \item{indices}{list of vectors of indices according to which \code{x}
-    is grouped.}
+  \item{indices}{
+    \describe{
+      \item{groupData():}{list of vectors of indices according to which \code{x}
+	is grouped.}
+      \item{indexData():}{vector of column indices of \code{x}
+	(typically obtained from \code{zenpath()}).}
+    }
+  }
+  \item{byrow}{\code{\link{logical}} indicating whether the grouping is
+    done by row (\code{byrow = TRUE}) or by column (\code{byrow = FALSE}).}
 }
 \value{
   \code{zenpath()} returns a sequence of variables (indices or names,
   possibly a list of such), which can then be used to index the data
-  (via \code{group()}) for plotting via \code{\link{zenplot}()}.
+  (via \code{groupData()}) for plotting via \code{\link{zenplot}()}.
 
   \code{extract_pairs()} returns an object of the same type as the input
   \code{x} but (possibly) shortened. It extracts the first/last so-many
@@ -94,8 +109,12 @@ group(x, indices)
   \code{connect_pairs()} returns a \code{\link{list}} of (possibly connected)
   pairs, so a list of vectors of length at least 2.
 
-  \code{group()} returns a \code{\link{list}} of (grouped)
+  \code{groupData()} returns a \code{\link{list}} of (grouped)
   matrices. This is then typically passed on to \code{\link{zenplot}()}.
+
+  \code{indexData()} returns an object as \code{x} (typically a
+  \code{\link{data.frame}} or \code{\link{matrix}}) containing \code{x}
+  indexed by \code{indices}.
 }
 \author{Marius Hofert and Wayne Oldford}
 %% \references{
@@ -106,10 +125,10 @@ group(x, indices)
   \code{\link{zenplot}()} which provides the zenplot.
 }
 \examples{
-## A baby example to see how group() works
+## A baby example to see how groupData() works
 A <- matrix(1:12, ncol = 3)
 lst <- list(1, list(2:3))
-group(A, indices = lst) # split the matrix according to the grouping given by lst
+groupData(A, indices = lst) # split the matrix according to the grouping given by lst
 
 ## Some calls of zenpath()
 zenpath(10) # integer argument

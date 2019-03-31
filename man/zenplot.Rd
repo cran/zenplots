@@ -83,10 +83,10 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
     can be a \code{\link{character}} string or a \code{numeric(2)}.
     If \code{lim = "groupwise"} and \code{x} does not contain groups,
     the behavior is equivalent to \code{lim = "global"}.}
-  \item{labs}{plot labels to be used; typically as given in the
-    default, but can be anything as long as \code{plot1d} and
-    \code{plot2d} know how to deal with it. See the argument
-    \code{labs} of \code{\link{burst}()} for the exact specification.}
+  \item{labs}{plot labels to be used; see the argument
+    \code{labs} of \code{\link{burst}()} for the exact specification.
+    Can, in general, be anything as long as \code{plot1d} and
+    \code{plot2d} know how to deal with it.}
   \item{pkg}{R package used for plotting (depends on how the
     functions \code{plot1d} and \code{plot2d} were constructed;
     the user is responsible for choosing the appropriate package
@@ -172,7 +172,7 @@ zenplot(x, turns = NULL, first1d = TRUE, last1d = TRUE,
 n <- 1000 # sample size
 d <- 20 # dimension
 set.seed(271) # set seed (for reproducibility)
-x <- matrix(rnorm(n*d), ncol = d) # i.i.d. N(0,1) data
+x <- matrix(rnorm(n * d), ncol = d) # i.i.d. N(0,1) data
 
 ## A basic zenplot
 res <- zenplot(x)
@@ -454,7 +454,7 @@ d <- sum(d.) # total dimension
 nu <- rep(c(12, 1, 0.25), times = d.) # d.o.f. for each dimension
 n <- 500 # sample size
 set.seed(271)
-Z <- matrix(rnorm(n*d), ncol = n) # (d,n)-matrix
+Z <- matrix(rnorm(n * d), ncol = n) # (d,n)-matrix
 P <- matrix(0.5, nrow = d, ncol = d)
 diag(P) <- 1
 L <- t(chol(P)) # L: LL^T = P
@@ -536,7 +536,8 @@ my_points_2d_ggplot <- function(zargs, extract2d = TRUE)
 {
     if(extract2d) {
         r <- extract_2d(zargs) # extract results from zargs
-        df <- data.frame(x = as.numeric(r$x), y = as.numeric(r$y)) # data frame
+        df <- data.frame(r$x, r$y) # data frame
+	names(df) <- c("x", "y")
         cols <- zargs$x[,"Species"]
     } else {
         ii <- plot_indices(zargs) # the indices of the variables to be plotted

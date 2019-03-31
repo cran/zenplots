@@ -3,8 +3,10 @@
 
 ##' @title Plot of labels indicating adjacent groups
 ##' @param zargs argument list as passed from zenplot()
-##' @param glabs group labels being indexed by the plot variables;
+##' @param glabs group labels being indexed by the plot variables
+##'        (and thus of length as the number of variables);
 ##'        if NULL then they are determined with extract_2d()
+##' @param sep group label separator
 ##' @param loc (x,y)-location in [0,1]^2; 0 corresponds to left, 1 to right (in
 ##'        the direction of the path)
 ##' @param add logical indicating whether this plot should be added to the last one
@@ -15,7 +17,7 @@
 ##' @note For performance reasons (avoiding having to call extract_2d() twice),
 ##'       'glabs' is an extra argument
 group_2d_graphics <- function(zargs,
-                              glabs, loc = c(0.5, 0.5),
+                              glabs = NULL, sep = "\n", loc = c(0.5, 0.5),
                               add = FALSE, plot... = NULL, ...)
 {
     check_zargs(zargs, "turns", "vars", "num")
@@ -24,12 +26,19 @@ group_2d_graphics <- function(zargs,
     num <- zargs$num
     ii <- range(vars[num,]) # variable index
     ii <- if(turns[num-1] == "u" || turns[num] == "u") rev(ii) else ii
-    label <- paste0(glabs[ii], collapse = "\n") # labels (in the correct order for displaying the group change)
+    if(is.null(glabs)) {
+        glabs <- extract_2d(zargs)$glabs
+    } else {
+        len.groups <- length(unlist(zargs$x, recursive = FALSE))
+        if(length(glabs) != len.groups)
+            stop("length(glabs) has to equal the number ",len.groups," of variables in all groups together; consider rep()")
+    }
+    labs <- paste0(glabs[ii], collapse = sep) # labels (in the correct order for displaying the group change)
     ## Plotting
     opar <- par(usr = c(0, 1, 0, 1)) # switch to relative coordinates (easier when adding to a plot; the same if not adding to a plot)
     on.exit(par(opar))
     if(!add) plot_region(xlim = 0:1, ylim = 0:1, plot... = plot...) # plot region; uses xlim, ylim
-    text(x = loc[1], y = loc[2], labels = label, ...)
+    text(x = loc[1], y = loc[2], labels = labs, ...)
 }
 
 ##' @title Point plot in 2d
@@ -49,16 +58,66 @@ points_2d_graphics <- function(zargs,
     r <- extract_2d(zargs)
     xlim <- r$xlim
     ylim <- r$ylim
-    x <- r$x
-    y <- r$y
+    x <- as.matrix(r$x) # for points()
+    y <- as.matrix(r$y)
     same.group <- r$same.group
-    glabs <- r$glabs
     if(same.group) {
         if(!add) plot_region(xlim = xlim, ylim = ylim, plot... = plot...) # plot region; uses xlim, ylim
         points(x = x, y = y, cex = cex, ...)
         if(box) box(...) # plot the box
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs, add = add), group...)
+        args <- c(list(zargs = zargs, add = add), group...)
+        do.call(group_2d_graphics, args)
+    }
+}
+
+##' @title Q-Q plot in 2d (two data sets against each other)
+##' @param zargs argument list as passed from zenplot()
+##' @param do.line logical indicating whether a line is drawn (through both
+##'        empirical c(0.25, 0.75)-quantiles)
+##' @param lines... additional arguments passed to lines()
+##' @param cex character expansion factor
+##' @param box logical indicating whether a box should be drawn
+##' @param add logical indicating whether this plot should be added to the last one
+##' @param group... list of arguments passed to group_2d_graphics (or NULL)
+##' @param plot... additional arguments passed to plot_region()
+##' @param ... additional arguments passed to qqplot()
+##' @return invisible()
+##' @author Marius Hofert and Wayne Oldford
+##' @note line iff both margins are of the same *type*
+qq_2d_graphics <- function(zargs,
+                           do.line = TRUE, lines... = NULL, cex = 0.4, box = FALSE,
+                           add = FALSE, group... = NULL, plot... = NULL, ...)
+{
+    r <- extract_2d(zargs)
+    xlim <- r$xlim
+    ylim <- r$ylim
+    x <- as.matrix(r$x) # for points()
+    y <- as.matrix(r$y)
+    same.group <- r$same.group
+    if(same.group) {
+        if(!add) plot_region(xlim = xlim, ylim = ylim, plot... = plot...) # plot region; uses xlim, ylim
+        ## Calculation (see qqplot())
+        sx <- sort(x)
+        sy <- sort(y)
+        lenx <- length(sx)
+        leny <- length(sy)
+        if (leny < lenx)
+            sx <- approx(1L:lenx, sx, n = leny)$y
+        if (leny > lenx)
+            sy <- approx(1L:leny, sy, n = lenx)$y
+        ## Plot
+        points(x = sx, y = sy, cex = cex, ...) # Q-Q plot
+        if(do.line) {
+            qx <- quantile(x, probs = c(0.25, 0.75), na.rm = TRUE, names = FALSE)
+            qy <- quantile(y, probs = c(0.25, 0.75), na.rm = TRUE, names = FALSE)
+            slope <- diff(qy) / diff(qx)
+            intercept <- qy[1] - qx[1] * slope
+            do.call(abline, c(list(a = intercept, b = slope), lines...))
+        }
+        if(box) box(...) # plot the box
+    } else {
+        args <- c(list(zargs = zargs, add = add), group...)
         do.call(group_2d_graphics, args)
     }
 }
@@ -86,7 +145,6 @@ density_2d_graphics <- function(zargs,
     x <- r$x
     y <- r$y
     same.group <- r$same.group
-    glabs <- r$glabs
     if(same.group) {
         data <- na.omit(cbind(x, y))
         dens <- kde2d(data[,1], data[,2], n = ngrids, lims = c(xlim, ylim))
@@ -94,7 +152,7 @@ density_2d_graphics <- function(zargs,
                 axes = axes, add = add, ...)
         if(box) box(...) # plot the box
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs, add = add), group...)
+        args <- c(list(zargs = zargs, add = add), group...)
         do.call(group_2d_graphics, args)
     }
 }
@@ -121,7 +179,6 @@ axes_2d_graphics <- function(zargs,
     xlim <- r$xlim
     ylim <- r$ylim
     same.group <- r$same.group
-    glabs <- r$glabs
     if(same.group) {
         if(!add) plot_region(xlim = xlim, ylim = ylim, plot... = plot...)
         epsx <- eps * diff(xlim)
@@ -131,7 +188,7 @@ axes_2d_graphics <- function(zargs,
         arrows(xlim[1]-epsx, ylim[1]-epsy, xlim[1]-epsx, ylim[2]+epsy,
                length = length, code = code, xpd = xpd, ...) # y axis
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs, add = add), group...)
+        args <- c(list(zargs = zargs, add = add), group...)
         do.call(group_2d_graphics, args)
     }
 }
@@ -153,7 +210,6 @@ arrow_2d_graphics <- function(zargs,
 {
     r <- extract_2d(zargs)
     same.group <- r$same.group
-    glabs <- r$glabs
     check_zargs(zargs, "num", "turns")
     turn.out <- zargs$turns[zargs$num]
     if(same.group) {
@@ -167,7 +223,7 @@ arrow_2d_graphics <- function(zargs,
         segments(x0 = rep(arr[1,2], 2),      y0 = rep(arr[2,2], 2),
                  x1 = c(arr[1,1], arr[1,3]), y1 = c(arr[2,1], arr[2,3]), ...)
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs, add = add), group...)
+        args <- c(list(zargs = zargs, add = add), group...)
         do.call(group_2d_graphics, args)
     }
 }
@@ -189,7 +245,6 @@ rect_2d_graphics <- function(zargs,
 {
     r <- extract_2d(zargs)
     same.group <- r$same.group
-    glabs <- r$glabs
     if(same.group) {
         x <- c(loc[1] - width/2, loc[1] + width/2)
         y <- c(loc[2] - height/2, loc[2] + height/2)
@@ -199,7 +254,7 @@ rect_2d_graphics <- function(zargs,
         if(!add) plot_region(xlim = 0:1, ylim = 0:1, plot... = plot...) # plot region; uses xlim, ylim
         rect(xleft = x[1], ybottom = y[1], xright = x[2], ytop = y[2], ...)
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs, add = add), group...)
+        args <- c(list(zargs = zargs, add = add), group...)
         do.call(group_2d_graphics, args)
     }
 }
@@ -223,7 +278,6 @@ label_2d_graphics <- function(zargs,
     r <- extract_2d(zargs)
     same.group <- r$same.group
     vlabs <- r$vlabs
-    glabs <- r$glabs
     check_zargs(zargs, "vars", "num")
     vars <- zargs$vars
     num <- zargs$num
@@ -238,7 +292,7 @@ label_2d_graphics <- function(zargs,
         text(x = loc[1], y = loc[2], labels = label, adj = adj, ...)
         if(box) box(...) # plot the box
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs, add = add), group...)
+        args <- c(list(zargs = zargs, add = add), group...)
         do.call(group_2d_graphics, args)
     }
 }

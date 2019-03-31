@@ -19,7 +19,7 @@ rug_1d_grid <- function(zargs,
                         draw = FALSE, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     horizontal <- r$horizontal
     lim <- r$xlim
     check_zargs(zargs, "num", "turns", "ispace")
@@ -65,7 +65,7 @@ points_1d_grid <- function(zargs,
                            draw = FALSE, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     horizontal <- r$horizontal
     lim <- r$xlim
     check_zargs(zargs, "num", "turns", "ispace", "width1d", "width2d")
@@ -136,7 +136,7 @@ hist_1d_grid <- function(zargs,
                          draw = FALSE, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     horizontal <- r$horizontal
     check_zargs(zargs, "ispace")
     turn.out <- zargs$turns[zargs$num] # turn out of current position
@@ -227,7 +227,7 @@ density_1d_grid <- function(zargs,
             xlim <- range(0, y.)
             ylim <- range(x.)
             x <-  c(0, y., 0)
-            y <- c(min(x.), x., max(x.))
+            y <- c(ylim[1], x., ylim[2])
             ## Scaling
             x <- (1-2*offset) * x + offset * if(turn.out == "l") xlim[1] else xlim[2] # scale to [offset, 1-offset] * xlim[2]
         }
@@ -261,7 +261,7 @@ boxplot_1d_grid <- function(zargs,
                             draw = FALSE, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     horizontal <- r$horizontal
     lim <- r$xlim
     check_zargs(zargs, "width1d", "width2d", "ispace")
@@ -539,7 +539,7 @@ label_1d_grid <- function(zargs,
 {
     r <- extract_1d(zargs)
     horizontal <- r$horizontal
-    if(is.null(label)) label <- colnames(r$x) # combined group and variable label
+    if(is.null(label)) label <- names(r$x) # combined group and variable label
     check_zargs(zargs, "num", "turns", "ispace")
     turn.out <- zargs$turns[zargs$num] # turn out of current position
     if(turn.out == "d") loc <- 1-loc # when walking downwards, change both left/right and up/down

@@ -13,6 +13,7 @@
 \alias{layout_1d_graphics}
 \alias{group_2d_graphics}
 \alias{points_2d_graphics}
+\alias{qq_2d_graphics}
 \alias{density_2d_graphics}
 \alias{axes_2d_graphics}
 \alias{arrow_2d_graphics}
@@ -58,11 +59,14 @@ layout_1d_graphics(zargs, ...)
 
 
 group_2d_graphics(zargs,
-                  glabs, loc = c(0.5, 0.5),
+                  glabs = NULL, sep = "\n", loc = c(0.5, 0.5),
                   add = FALSE, plot... = NULL, ...)
 points_2d_graphics(zargs,
                    cex = 0.4, box = FALSE,
                    add = FALSE, group... = NULL, plot... = NULL, ...)
+qq_2d_graphics(zargs,
+               do.line = TRUE, lines... = NULL, cex = 0.4, box = FALSE,
+               add = FALSE, group... = NULL, plot... = NULL, ...)
 density_2d_graphics(zargs,
                     ngrids = 25, drawlabels = FALSE,
                     axes = FALSE, box = FALSE,
@@ -111,9 +115,16 @@ layout_2d_graphics(zargs, ...)
     of the data if \code{\link{NULL}}).}
   \item{box}{\code{\link{logical}} indicating whether a box is drawn
     around the plot region.}
-  \item{glabs}{group labels being indexed by the plot variables;
+  \item{glabs}{group labels being indexed by the plot variables
+    (thus need to be of length as the number of plot variables);
     if \code{NULL}, they are determined with \code{\link{extract_2d}()}
     and the underlying \code{\link{burst}()}.}
+  \item{sep}{a separator \code{\link{character}} for the group labels.}
+  \item{do.line}{\code{\link{logical}} indicating whether a Q-Q line is
+    plotted.}
+  \item{lines...}{\code{\link{list}} of additional arguments passed to
+    the underlying \code{\link{lines}()} function for drawing the Q-Q
+    line through the empirical 0.25- and 0.75-quantiles.}
   \item{ngrids}{number of grid points in each dimension (a scalar or
     an integer vector of length two).}
   \item{drawlabels}{\code{\link{logical}} indicating whether
@@ -125,11 +136,11 @@ layout_2d_graphics(zargs, ...)
     region with respect to which clipping takes place; see
     \code{\link{par}()}.}
   \item{adj}{x (and optionally y) adjustment of the label.}
-  \item{density...}{\code{\link{list}()} of additional arguments passed to
+  \item{density...}{\code{\link{list}} of additional arguments passed to
     the underlying \code{\link{density}()}.}
   \item{group...}{\code{\link{list}()} of additional arguments passed to
     \code{\link{group_2d_graphics}()}.}
-  \item{plot...}{\code{\link{list}()} of additional arguments passed to
+  \item{plot...}{\code{\link{list}} of additional arguments passed to
     the underlying \code{\link{plot}()}.}
   \item{\dots}{additional arguments passed to the underlying
     \pkg{graphics} functions.}
@@ -180,6 +191,7 @@ layout_1d_graphics
 ## Implementation of 2d functions (for plot2d of zenplot())
 group_2d_graphics
 points_2d_graphics
+qq_2d_graphics
 density_2d_graphics
 axes_2d_graphics
 arrow_2d_graphics

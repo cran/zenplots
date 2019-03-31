@@ -2,21 +2,23 @@
 
 
 ##' @title Plot of labels indicating adjacent groups
-##' @param zargs The argument list as passed from zenplot()
-##' @param glabs The group labels being indexed by the plot variables;
+##' @param zargs argument list as passed from zenplot()
+##' @param glabs group labels being indexed by the plot variables
+##'        (and thus of length as the number of variables);
 ##'        if NULL then they are determined with extract_2d()
-##' @param size The plot size
-##' @param rot The rotation
+##' @param sep group label separator
+##' @param size plot size
+##' @param rot rotation
 ##' @param baseplot If non-NULL the base plot on which the plot should be
 ##'        layered
-##' @param parent The tk parent for this loon plot widget
+##' @param parent tk parent for this loon plot widget
 ##' @param ... Additional arguments passed to text()
 ##' @return invisible()
 ##' @author Marius Hofert & Wayne Oldford
 ##' @note For performance reasons (avoiding having to call extract_2d() twice),
 ##'       'glabs' is an extra argument
 group_2d_loon <- function(zargs,
-                          glabs, size = 8, rot = 0,
+                          glabs = NULL, sep = "\n", size = 8, rot = 0,
                           baseplot = NULL, parent = NULL, ...)
 {
     check_zargs(zargs, "turns", "vars", "num")
@@ -27,6 +29,13 @@ group_2d_loon <- function(zargs,
     ylim <- 0:1
     ii <- c(min(vars[num,]), max(vars[num,])) # variable index
     ii <- if(turns[num-1] == "u" || turns[num] == "u") rev(ii) else ii
+    if(is.null(glabs)) {
+        glabs <- extract_2d(zargs)$glabs
+    } else {
+        len.groups <- length(unlist(zargs$x, recursive = FALSE))
+        if(length(glabs) != len.groups)
+            stop("length(glabs) has to equal the number ",len.groups," of variables in all groups together; consider rep()")
+    }
     labs <- paste0(glabs[ii], collapse = "\n") # labels (in the correct order for displaying the group change)
     if(is.null(baseplot))
         baseplot <- loon::l_plot(showLabels = FALSE,
@@ -62,12 +71,11 @@ points_2d_loon <- function(zargs,
                            parent = NULL, group... = NULL, ...)
 {
     r <- extract_2d(zargs)
-    x <- r$x
-    y <- r$y
+    x <- as.matrix(r$x)
+    y <- as.matrix(r$y)
     xlim <- r$xlim
     ylim <- r$ylim
     same.group <- r$same.group
-    glabs <- r$glabsx
     check_zargs(zargs, "ispace")
     if(same.group) {
         ## Check for linkingGroup
@@ -91,7 +99,7 @@ points_2d_loon <- function(zargs,
                         ispace = zargs$ispace,
                         xlim = xlim, ylim = ylim)
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs), group...)
+        args <- c(list(zargs = zargs), group...)
         do.call(group_2d_loon, args)
     }
 }
@@ -125,12 +133,11 @@ density_2d_loon <- function(zargs, ngrids = 25,
                             baseplot = NULL, parent = NULL, group... = NULL, ...)
 {
     r <- extract_2d(zargs)
-    x <- r$x
-    y <- r$y
+    x <- as.matrix(r$x)
+    y <- as.matrix(r$y)
     xlim <- r$xlim
     ylim <- r$ylim
     same.group <- r$same.group
-    glabs <- r$glabsx
     if(same.group) {
 
         ## Check for linkingGroup
@@ -217,7 +224,7 @@ density_2d_loon <- function(zargs, ngrids = 25,
         baseplot
 
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs), group...)
+        args <- c(list(zargs = zargs), group...)
         do.call(group_2d_loon, args)
     }
 }
@@ -250,7 +257,6 @@ axes_2d_loon <- function(zargs,
     xlim <- r$xlim
     ylim <- r$ylim
     same.group <- r$same.group
-    glabs <- r$glabsx
 
     ## Check for linkingGroup
     if (is.null(linkingGroup))
@@ -335,7 +341,7 @@ axes_2d_loon <- function(zargs,
         baseplot
 
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs), group...)
+        args <- c(list(zargs = zargs), group...)
         do.call(group_2d_loon, args)
     }
 }
@@ -367,7 +373,6 @@ arrow_2d_loon <- function(zargs,
     same.group <- r$same.group
     turns <- zargs$turns
     num <- zargs$num
-    glabs <- r$glabs
     if (is.null(linkingGroup))
         linkingGroup <-  paste0("zenplot parent =", parent$ID)
     if(same.group) {
@@ -383,7 +388,7 @@ arrow_2d_loon <- function(zargs,
         loon::l_layer_line(widget = baseplot, x = arr[1,], y = arr[2,], color = color, ...)
         baseplot
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs), group...)
+        args <- c(list(zargs = zargs), group...)
         do.call(group_2d_loon, args)
     }
 }
@@ -413,7 +418,6 @@ rect_2d_loon <- function(zargs, loc.x = NULL, loc.y = NULL, color = NULL,
 {
     r <- extract_2d(zargs)
     same.group <- r$same.group
-    glabs <- r$glabs
 
     if (is.null(linkingGroup))
         linkingGroup <-  paste0("zenplot parent =", parent$ID)
@@ -444,7 +448,7 @@ rect_2d_loon <- function(zargs, loc.x = NULL, loc.y = NULL, color = NULL,
                         ispace = zargs$ispace)
         baseplot
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs), group...)
+        args <- c(list(zargs = zargs), group...)
         do.call(group_2d_loon, args)
     }
 }
@@ -477,7 +481,6 @@ label_2d_loon <- function(zargs,
     same.group <- r$same.group
     vlabs <- r$vlabs
     vars <- zargs$vars
-    glabs <- r$glabs
     num <- zargs$num
     ## Check for linkingGroup
     if (is.null(linkingGroup))
@@ -513,7 +516,7 @@ label_2d_loon <- function(zargs,
                         xlim = c(0,1), ylim = c(0,1))
         baseplot
     } else {
-        args <- c(list(zargs = zargs, glabs = glabs), group...)
+        args <- c(list(zargs = zargs), group...)
         do.call(group_2d_loon, args)
     }
 }

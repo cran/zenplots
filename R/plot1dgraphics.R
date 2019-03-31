@@ -18,7 +18,7 @@ rug_1d_graphics <- function(zargs,
                             add = FALSE, plot... = NULL, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x) # for segments()
     horizontal <- r$horizontal
     lim <- r$xlim
     check_zargs(zargs, "num", "turns")
@@ -68,7 +68,7 @@ points_1d_graphics <- function(zargs,
                                add = FALSE, plot... = NULL, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x) # for points()
     horizontal <- r$horizontal
     lim <- r$xlim
     check_zargs(zargs, "num", "turns")
@@ -137,7 +137,7 @@ hist_1d_graphics <- function(zargs,
                              plot... = NULL, ...)
 {
     r <- extract_1d(zargs)
-    x <- r$x
+    x <- as.matrix(r$x)
     horizontal <- r$horizontal
     check_zargs(zargs, "num", "turns")
     turn.out <- zargs$turns[zargs$num] # turn out of current position
@@ -216,7 +216,7 @@ density_1d_graphics <- function(zargs,
             xlim <- range(0, y.)
             ylim <- range(x.)
             x <-  c(0, y., 0)
-            y <- c(xlim[1], x., xlim[2])
+            y <- c(ylim[1], x., ylim[2])
             ## Scaling
             x <- (1-2*offset) * x + offset * if(turn.out == "l") xlim[1] else xlim[2] # scale to [offset, 1-offset] * xlim[2]
         }
@@ -400,7 +400,7 @@ label_1d_graphics <- function(zargs,
 {
     r <- extract_1d(zargs)
     horizontal <- r$horizontal
-    if(is.null(label)) label <- colnames(r$x) # combined group and variable label
+    if(is.null(label)) label <- names(r$x) # combined group and variable label
     check_zargs(zargs, "num", "turns")
     turn.out <- zargs$turns[zargs$num] # turn out of current position
     if(turn.out == "d") loc <- 1-loc # when walking downwards, change both left/right and up/down

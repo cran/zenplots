@@ -16,10 +16,10 @@ burst(x, labs = list())
   \item{labs}{either \code{\link{NULL}} (in which case
     neither group nor variable labels are computed) or a list
     containing the components \code{group} (either
-    \code{\link{NULL}}, the group label base-name or labels for the group labels),
+    \code{\link{NULL}}, the group label basename or labels for the groups),
     \code{var} (either \code{\link{NULL}}, the variable label
-    base-name or labels for the variable labels), \code{sep} (the
-    separator between the two) and \code{group2d} (a
+    basename or labels for the variables), \code{sep} (the
+    separator between group and variable labels) and \code{group2d} (a
     \code{\link{logical}} indicating whether labels of
     \code{group_2d_*()} plots are affected by \code{group = NULL} or
     still printed). If any of these components is

@@ -81,7 +81,7 @@ layout_1d_loon(zargs, ...)
 
 
 group_2d_loon(zargs,
-              glabs, size = 8, rot = 0,
+              glabs = NULL, sep = "\n", size = 8, rot = 0,
               baseplot = NULL, parent = NULL, ...)
 points_2d_loon(zargs,
                showLabels = FALSE, showScales = FALSE,
@@ -181,9 +181,11 @@ layout_2d_loon(zargs, ...)
   \item{size}{plot size.}
   \item{box}{\code{\link{logical}} indicating whether a box is drawn
     around the plot.}
-  \item{glabs}{group labels being indexed by the plot variables;
+  \item{glabs}{group labels being indexed by the plot variables
+    (thus need to be of length as the number of plot variables);
     if \code{NULL}, they are determined with \code{\link{extract_2d}()}
     and the underlying \code{\link{burst}()}.}
+  \item{sep}{a separator \code{\link{character}} for the group labels.}
   \item{group...}{list of arguments passed to
     \code{\link{group_2d_loon}()} (or \code{NULL})}.
   \item{ngrids}{number of grid points in each dimension (a scalar or

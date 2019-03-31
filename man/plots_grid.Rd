@@ -13,6 +13,7 @@
 \alias{layout_1d_grid}
 \alias{group_2d_grid}
 \alias{points_2d_grid}
+\alias{qq_2d_grid}
 \alias{density_2d_grid}
 \alias{axes_2d_grid}
 \alias{arrow_2d_grid}
@@ -60,12 +61,16 @@ layout_1d_grid(zargs, ...)
 
 
 group_2d_grid(zargs,
-              glabs, loc = c(0.5, 0.5),
+              glabs = NULL, sep = "\n", loc = c(0.5, 0.5),
               draw = FALSE, ...)
 points_2d_grid(zargs,
                type = c("p", "l", "o"), pch = NULL, size = 0.02,
                box = FALSE, box.width = 1, box.height = 1,
                group... = list(cex = 0.66), draw = FALSE, ...)
+qq_2d_grid(zargs,
+           do.line = TRUE, lines... = NULL, pch = NULL, size = 0.02,
+           box = FALSE, box.width = 1, box.height = 1,
+           group... = list(cex = 0.66), draw = FALSE, ...)
 density_2d_grid(zargs,
                 ngrids = 25, ccol = NULL, clwd = 1, clty = 1,
                 box = FALSE, box.width = 1, box.height = 1,
@@ -131,11 +136,18 @@ layout_2d_grid(zargs, ...)
     but might not always be suitable -- for that one would need to know
     both the number of rows and columns in the plot layout and yet this
     would still be affected by the size of the plot window).}
-  \item{glabs}{group labels being indexed by the plot variables;
+  \item{glabs}{group labels being indexed by the plot variables
+    (thus need to be of length as the number of plot variables);
     if \code{NULL}, they are determined with \code{\link{extract_2d}()}
     and the underlying \code{\link{burst}()}.}
+  \item{sep}{a separator \code{\link{character}} for the group labels.}
   \item{group...}{list of arguments passed to
     \code{\link{group_2d_grid}()} (or \code{NULL})}.
+  \item{do.line}{\code{\link{logical}} indicating whether a Q-Q line is
+    plotted.}
+  \item{lines...}{\code{\link{list}} of additional arguments passed to
+    the underlying \code{\link{lines}()} function for drawing the Q-Q
+    line through the empirical 0.25- and 0.75-quantiles.}
   \item{ngrids}{number of grid points in each dimension (a scalar or
     an integer vector of length two).}
   \item{ccol, clwd, clty}{colors (\code{col}), line widths
@@ -190,6 +202,7 @@ layout_1d_grid
 ## Implementation of 2d functions (for plot2d of zenplot())
 group_2d_grid
 points_2d_grid
+qq_2d_grid
 density_2d_grid
 axes_2d_grid
 arrow_2d_grid

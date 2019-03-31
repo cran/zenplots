@@ -11,7 +11,7 @@
 ##'        interpreted as in the (x,y)-plane).
 ##' @return new position in the occupancy matrix
 ##' @author Marius Hofert and Wayne Oldford
-move <- function(curpos, dir, method=c("in.occupancy", "in.plane"))
+move <- function(curpos, dir, method = c("in.occupancy", "in.plane"))
 {
     method <- match.arg(method)
     curpos +
@@ -135,7 +135,7 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
             ## Check the location of the 2d plot which comes after the next 2d plot
             ## in opposite horizontal moving direction.
             pos2check <- c(curpos[1] + if(curout=="u") -1 else 1, curpos[2] + if(horizdir=="r") -2 else 2)
-            exists <- posExists(pos2check, occupancy=curpath$occupancy)
+            exists <- posExists(pos2check, occupancy = curpath$occupancy)
             ## If it does not exist (can only happen if curout="d" in which case
             ## the occupancy matrix is missing a new row), then put the
             ## last 1d plot in opposite horizontal moving direction if we are near
@@ -152,7 +152,7 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
             } else { # exists
                 ## If this position exists, then change the horizontal moving direction
                 ## if and only if it is not occupied (otherwise we can't go there)
-                if(curpath$occupancy[pos2check[1], pos2check[2]] == 0) { # not occupied
+                if(curpath$occupancy[pos2check[1], pos2check[2]] == "") { # not occupied
                     if(horizdir == "r") "l" else "r"
                 } else {
                     horizdir
@@ -182,22 +182,22 @@ next_move_tidy <- function(plotNo, nPlots, curpath)
                 ## Check whether 1 or 2 plot(s) fit in
                 pos2check <- c(curpos[1]-2, curpos[2] + if(horizdir=="r") 1 else -1)
                 exists <- posExists(pos2check, occupancy=occupancy)
-                if(exists && occupancy[pos2check[1], pos2check[2]] > 0) return(1)
+                if(exists && (occupancy[pos2check[1], pos2check[2]] != "")) return(1)
                 if(!exists) return(2) # ... we can't put in more plots
                 ## Check whether 4 plots fit in
                 pos2check <- pos2check + c(0, if(horizdir=="r") 2 else -2)
                 exists <- posExists(pos2check, occupancy=occupancy)
-                if(!exists || (exists && occupancy[pos2check[1], pos2check[2]] > 0))
+                if(!exists || (exists && (occupancy[pos2check[1], pos2check[2]] != "")))
                     return(4) # ... we can't put in more plots
                 ## Check whether 6 plots fit in
                 pos2check <- pos2check + c(2, 0)
                 exists <- posExists(pos2check, occupancy=occupancy)
-                if(!exists || (exists && occupancy[pos2check[1], pos2check[2]] > 0))
+                if(!exists || (exists && (occupancy[pos2check[1], pos2check[2]] != "")))
                     return(6) # ... we can't put in more plots
                 ## Check whether 8 or >= 10 plots fit in
                 pos2check <- pos2check + c(0, if(horizdir=="r") 2 else -2)
                 exists <- posExists(pos2check, occupancy=occupancy)
-                if(!exists || (exists && occupancy[pos2check[1], pos2check[2]] > 0))
+                if(!exists || (exists && (occupancy[pos2check[1], pos2check[2]] != "")))
                     return(8) else return(10) # here means "at least 10"
             }
             ## Determine the number of plots along the U-turn starting from the current position
@@ -264,13 +264,13 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
         positions <- sweep(positions, 2, min.pos) + 1 # substract these and add (1,1)
 
         ## 1.4) Compute the occupancy matrix
-        occupancy <- matrix(0, nrow=max(positions[,"x"]), ncol=max(positions[,"y"])) # occupancy matrix; note: already trimmed by construction
+        occupancy <- matrix("", nrow=max(positions[,"x"]), ncol=max(positions[,"y"])) # occupancy matrix; note: already trimmed by construction
         for(i in 1:nrow(positions)) # loop over positions and fill occupancy matrix accordingly
             occupancy[positions[i,1], positions[i,2]] <- switch(turns[i],
-                                                                "l" = { 1 },
-                                                                "r" = { 2 },
-                                                                "d" = { 3 },
-                                                                "u" = { 4 },
+                                                                "l" = { "l" },
+                                                                "r" = { "r" },
+                                                                "d" = { "d" },
+                                                                "u" = { "u" },
                                                                 stop("Wrong 'turns'"))
 
         ## (Early) return
@@ -318,10 +318,10 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
         occupancy <- matrix(0, nrow = positions[nPlots,1], ncol = min(max(positions[,2]), 2*n2dcols-1)) # positions
         for(i in 1:nPlots) {
             occupancy[positions[i,1], positions[i,2]] <- switch(turns[i],
-                                                                "l" = { 1 },
-                                                                "r" = { 2 },
-                                                                "d" = { 3 },
-                                                                "u" = { 4 }, # should not happen here
+                                                                "l" = { "l" },
+                                                                "r" = { "r" },
+                                                                "d" = { "d" },
+                                                                "u" = { "u" }, # should not happen here
                                                                 stop("Wrong 'turns'"))
         }
         ## Return
@@ -335,21 +335,21 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
            { # nPlots = 1
                turns <- "d"
                positions <- matrix(c(1,1), ncol=2, dimnames=list(NULL, c("x", "y")))
-               occupancy <- matrix(3, nrow=1, ncol=1)
+               occupancy <- matrix("d", nrow=1, ncol=1)
                list(turns=turns, positions=positions, occupancy=occupancy)
            },
            { # nPlots = 2
                turns <- c("d", "r")
                positions <- matrix(c(1,1, 2,1), ncol=2, byrow=TRUE,
                                    dimnames=list(NULL, c("x", "y")))
-               occupancy <- matrix(c(3, 2), nrow=2, ncol=1)
+               occupancy <- matrix(c("d", "r"), nrow=2, ncol=1)
                list(turns=turns, positions=positions, occupancy=occupancy)
            },
            { # nPlots = 3
                turns <- c("d", "r", "r")
                positions <- matrix(c(1,1, 2,1, 2,2), ncol=2, byrow=TRUE,
                                    dimnames=list(NULL, c("x", "y")))
-               occupancy <- matrix(c(3,0, 2,2), nrow=2, ncol=2, byrow=TRUE)
+               occupancy <- matrix(c("d","", "r","r"), nrow=2, ncol=2, byrow=TRUE)
                list(turns=turns, positions=positions, occupancy=occupancy)
            },
                stop("Wrong 'nPlots'"))
@@ -365,18 +365,16 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                    turns <- get_zigzag_turns(nPlots, n2dcols=n2dcols, method=method)
 
                    ## Build positions and occupancy matrix
-                   ## Interpretation: 0: not occupied; 1--4: "l", "r", "d", "u"
 
                    ## Setup
                    ncolOcc <- 2*n2dcols-1 # number of columns in the occupancy matrix
-                   occupancy <- matrix(0, nrow=1, ncol=ncolOcc) # occupancy matrix
+                   occupancy <- matrix("", nrow=1, ncol=ncolOcc) # occupancy matrix
                    positions <- matrix(0, nrow=nPlots, ncol=2, dimnames=list(NULL, c("x", "y"))) # positions
 
                    ## Init
-                   numeric.turns <- match(turns, table=c("l", "r", "d", "u")) # turns 'turns' into 1--4
                    curpos <- c(1, 1) # current position
                    positions[1,] <- curpos # occupy (row, col)
-                   occupancy[curpos[1], curpos[2]] <- numeric.turns[1]
+                   occupancy[curpos[1], curpos[2]] <- turns[1]
 
                    ## Loop over all remaining plots
                    maxrowOcc <- 1
@@ -386,14 +384,14 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                        positions[plotNo,] <- nextpos # occupy location (row, col)
                        curpos <- nextpos
                        if(curpos[1] > maxrowOcc) { # expand occupancy matrix by one row
-                           occupancy <- rbind(occupancy, rep(0, ncolOcc))
+                           occupancy <- rbind(occupancy, rep("", ncolOcc))
                            maxrowOcc <- maxrowOcc + 1
                        }
                        ## Update occupancy matrix
-                       occupancy[nextpos[1], nextpos[2]] <- numeric.turns[plotNo]
+                       occupancy[nextpos[1], nextpos[2]] <- turns[plotNo]
                    }
 
-                   ## Trim last columns of 0 from occupancy matrix
+                   ## Trim last columns of "" from occupancy matrix
                    occupancy <- occupancy[,seq_len(max(positions[,2])), drop=FALSE]
 
                    ## Build path
@@ -403,19 +401,17 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                "tidy" = { # 2.2.2)
 
                    ## Main idea: Build turns, positions and occupancy as we go along
-                   ## Interpretation: 0: not occupied; 1--4: "l", "r", "d", "u"
-                   ## Note: We could use the (logical!) NA as a third value for 'undetermined yet'
 
                    ## Setup
                    turns <- character(nPlots) # vector of turns out of current position
                    ncolOcc <- 2*n2dcols+1 # number of columns in the occupancy matrix (2*n2dcols-1 + left/right one more)
-                   occupancy <- matrix(0, nrow=1, ncol=ncolOcc) # occupancy matrix
+                   occupancy <- matrix("", nrow=1, ncol=ncolOcc) # occupancy matrix
                    positions <- matrix(0, nrow=nPlots, ncol=2, dimnames=list(NULL, c("x", "y"))) # positions
 
                    ## Init
                    turns[1] <- "d" # turn out of current position
                    positions[1,] <- c(1, 2) # occupy (row, col)
-                   occupancy[1, 2] <- 3 # initialize occupancy matrix there (3 = "d")
+                   occupancy[1, 2] <- "d" # initialize occupancy matrix there
 
                    ## Loop over all remaining plots
                    maxrowOcc <- 1
@@ -431,23 +427,23 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
                        nextpos  <- nextmove$nextpos
                        positions[plotNo,] <- nextpos # occupy location (row, col)
                        if(nextpos[1] > maxrowOcc) { # expand occupancy matrix by one row
-                           occupancy <- rbind(occupancy, rep(0, ncolOcc))
+                           occupancy <- rbind(occupancy, rep("", ncolOcc))
                            maxrowOcc <- maxrowOcc + 1
                        }
                        ## Update occupancy matrix
                        occupancy[nextpos[1], nextpos[2]] <-
                            switch(turns[plotNo], # update occupancy matrix
-                                  "l" = { 1 },
-                                  "r" = { 2 },
-                                  "d" = { 3 },
-                                  "u" = { 4 },
+                                  "l" = { "l" },
+                                  "r" = { "r" },
+                                  "d" = { "d" },
+                                  "u" = { "u" },
                                   stop("Wrong 'turns' at plotNo ", plotNo))
                    }
 
                    ## Trim last columns of 0s from occupancy matrix if necessary
                    occupancy <- occupancy[,seq_len(max(positions[,2])), drop=FALSE]
                    ## Trim first column of 0s and adjust positions if necessary
-                   if(all(occupancy[,1]==0)) { # first column
+                   if(all(occupancy[,1]=="")) { # first column
                        occupancy <- occupancy[,-1]
                        positions[,2] <- positions[,2] - 1
                    }
@@ -471,28 +467,28 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
         ## Trim occupancy matrix
         occupancy <- path$occupancy
         rm <- positions[1,] # position to be removed (= replaced by 0)
-        occupancy[rm[1], rm[2]] <- 0 # remove position
+        occupancy[rm[1], rm[2]] <- "" # remove position
         switch(first1d.turn.out,
         "l" = { # check whether we can trim last column
             jj <- ncol(occupancy)
-            if(all(occupancy[,jj] == 0))
+            if(all(occupancy[,jj] == ""))
                 occupancy <- occupancy[,-jj, drop = FALSE] # trim; no shift in positions necessary!
         },
         "r" = { # check whether we can trim first column
-            if(all(occupancy[,1] == 0)) {
+            if(all(occupancy[,1] == "")) {
                 occupancy <- occupancy[,-1, drop = FALSE] # trim
                 path$positions[,2] <- path$positions[,2] - 1 # shift all positions
             }
         },
         "d" = { # check whether we can trim first row
-            if(all(occupancy[1,] == 0)) {
+            if(all(occupancy[1,] == "")) {
                 occupancy <- occupancy[-1,, drop = FALSE] # trim
                 path$positions[,1] <- path$positions[,1] - 1 # shift all positions
             }
         },
         "u" = { # check whether we can trim last row
             ii <- nrow(occupancy)
-            if(all(occupancy[ii,] == 0))
+            if(all(occupancy[ii,] == ""))
                 occupancy <- occupancy[-ii,, drop = FALSE] # trim; no shift in positions necessary!
         }, stop("Wrong 'first1d.turn.out'."))
 
@@ -511,26 +507,26 @@ get_path <- function(turns = NULL, n2dcols = c("letter", "square", "A4", "golden
         ## Trim occupancy matrix
         occupancy <- path$occupancy
         rm <- positions[n,] # position to be removed (= replaced by 0)
-        occupancy[rm[1], rm[2]] <- 0 # remove position
+        occupancy[rm[1], rm[2]] <- "" # remove position
         switch(last1d.turn.out,
         "l" = { # check whether we can trim first column
-            if(all(occupancy[,1] == 0)) {
+            if(all(occupancy[,1] == "")) {
                 occupancy <- occupancy[,-1, drop = FALSE] # trim
                 path$positions[,2] <- path$positions[,2] - 1 # shift all positions
             }
         },
         "r" = { # check whether we can trim last column
             jj <- ncol(occupancy)
-            if(all(occupancy[,jj] == 0))
+            if(all(occupancy[,jj] == ""))
                 occupancy <- occupancy[,-jj, drop = FALSE] # trim; no shift in positions necessary!
         },
         "d" = { # check whether we can trim last row
             ii <- nrow(occupancy)
-            if(all(occupancy[ii,] == 0))
+            if(all(occupancy[ii,] == ""))
                 occupancy <- occupancy[-ii,, drop = FALSE] # trim; no shift in positions necessary!
         },
         "u" = { # check whether we can trim first row
-            if(all(occupancy[1,] == 0)) {
+            if(all(occupancy[1,] == "")) {
                 occupancy <- occupancy[-1,, drop = FALSE] # trim
                 path$positions[,1] <- path$positions[,1] - 1 # shift all positions
             }

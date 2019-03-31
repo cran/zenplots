@@ -189,16 +189,37 @@ graph_pairs <- function(x, var.names = NULL)
 
 ##' @title Splitting a Matrix into a List of Matrices
 ##' @param x A matrix
-##' @param indices A list of vectors of indices according to
+##' @param indices list of vectors of indices according to
 ##'        which 'x' is grouped
+##' @param byrow logical indicating whether the rows are grouped (byrow)
+##'        or the columns (!byrow)
 ##' @return A list of (grouped) matrices
 ##' @author Marius Hofert
-group <- function(x, indices)
+groupData <- function(x, indices, byrow = FALSE)
 {
     if(length(dim(x)) != 2)
        stop("'x' needs to have two dimensions")
     stopifnot(is.list(indices))
-    lapply(indices, function(ii) x[, unlist(ii), drop = FALSE])
+    if(byrow)
+        lapply(indices, function(ii) x[unlist(ii), , drop = FALSE])
+    else lapply(indices, function(ii) x[, unlist(ii), drop = FALSE])
+}
+
+##' @title Indexing a Matrix or Data Frame According to Given Indices
+##' @param x A matrix or data.frame (mostly useful for the latter)
+##' @param indices vector of column indices of x (typically obtained from
+##'        zenpath())
+##' @return An indexed x where columns are repeated according to 'indices'
+##' @author Marius Hofert and Wayne Oldford
+##' @note Useful for constructing data.frames without .1, .2, ... in their
+##'       names when indexing a data.frame with a zenpath.
+indexData <- function(x, indices)
+{
+    if(length(dim(x)) != 2)
+       stop("'x' needs to have two dimensions")
+    res <- x[, indices]
+    names(res) <- names(x)[indices]
+    res
 }
 
 ##' @title Computing Indices to Sort Data for a Zenplot
@@ -208,7 +229,7 @@ group <- function(x, indices)
 ##'        "back.loaded":  A single integer >= 1
 ##'        "balanced":     A single integer >= 1
 ##'        "eulerian.cross": Two integers >= 1.
-##'        "eulerian.weighted": A vector (or matrix or distance matrix)
+##'        "greedy.weighted": A vector (or matrix or distance matrix)
 ##'        "strictly.weighted": A vector (or matrix or distance matrix)
 ##' @param pairs An (n, 2)-matrix (some n) containing the pairs of variables
 ##'        to be sorted according to the weights
@@ -226,7 +247,7 @@ group <- function(x, indices)
 ##'                    (a Hamiltonian Decomposition; Eulerian, too).
 ##'        "eulerian.cross": Generate a sequence of pairs such that
 ##'                          each is formed with one variable from each group.
-##'        "eulerian.weighted": Sort all pairs according to a greedy (heuristic)
+##'        "greedy.weighted": Sort all pairs according to a greedy (heuristic)
 ##'                             Euler path with 'x' as weights visiting each
 ##'                             edge precisely once.
 ##'        "strictly.weighted": Strictly respect the order of the weights.
@@ -237,7 +258,7 @@ group <- function(x, indices)
 ##' @author Marius Hofert
 zenpath <- function(x, pairs = NULL,
                     method = c("front.loaded", "back.loaded", "balanced",
-                               "eulerian.cross", "eulerian.weighted",
+                               "eulerian.cross", "greedy.weighted",
                                "strictly.weighted"),
                     decreasing = TRUE)
 {
@@ -246,7 +267,7 @@ zenpath <- function(x, pairs = NULL,
     "front.loaded" = {
 
         stopifnot(is.numeric(x))
-        if(x %% 1 != 0 || length(x) != 1 || x < 1)
+        if(length(x) != 1 || x %% 1 != 0 || x < 1)
             stop("'x' has to be an integer >= 1 for method = \"front.loaded\".")
         if(x > 1) rev((x:1)[eseq(x)]) else 1
 
@@ -254,7 +275,7 @@ zenpath <- function(x, pairs = NULL,
     "back.loaded" = {
 
         stopifnot(is.numeric(x))
-        if(x %% 1 != 0 || length(x) != 1 || x < 1)
+        if(length(x) != 1 || x %% 1 != 0 || x < 1)
             stop("'x' has to be an integer >= 1 for method = \"back.loaded\".")
         if(x > 1) eseq(x) else 1
 
@@ -262,7 +283,7 @@ zenpath <- function(x, pairs = NULL,
     "balanced" = {
 
         stopifnot(is.numeric(x))
-        if(x %% 1 != 0 || length(x) != 1 || x < 1)
+        if(length(x) != 1 || x %% 1 != 0 || x < 1)
             stop("'x' has to be an integer >= 1 for method = \"balanced\".")
         if(x > 1) hpaths(x, matrix = FALSE) else 1
 
@@ -270,14 +291,14 @@ zenpath <- function(x, pairs = NULL,
     "eulerian.cross" = {
 
         stopifnot(is.numeric(x))
-        if(x %% 1 != 0 || length(x) != 2 || any(x < 1))
+        if(length(x) != 2 || any(x %% 1 != 0) || any(x < 1))
             stop("'x' has to be an integer vector of length 2 with entries >= 1.")
         g1 <- seq_len(x[1])
         g2 <- x[1] + seq_len(x[2])
         as.numeric(eulerian(bipartite_graph(g1, g2)))
 
     },
-    "eulerian.weighted" =, "strictly.weighted" = {
+    "greedy.weighted" =, "strictly.weighted" = {
 
         ## Deal with missing 'x' if pairs are given
         if(missing(x)) {
@@ -326,7 +347,7 @@ zenpath <- function(x, pairs = NULL,
             stop("'pairs' needs to have unique rows (possibly after applying rev()).")
 
         ## Now distinguish between the methods
-        if(method == "eulerian.weighted") { # method "eulerian.weighted"
+        if(method == "greedy.weighted") { # method "greedy.weighted"
 
             if(decreasing) x <- -x
             eul <- eulerian(ftM2graphNEL(ft = pairs, W = x, edgemode = "undirected"))

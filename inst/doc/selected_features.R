@@ -1,4 +1,4 @@
-## ------------------------------------------------------------------------
+## ---- message = FALSE----------------------------------------------------
 library(zenplots)
 data(olive)
 
@@ -48,7 +48,7 @@ zenplot(olive2, n2dcols = 6, plot1d = "layout", plot2d = "layout",
         method = "tidy")
 
 ## ---- fig.align = "center", fig.width = 8, fig.height = 5.4--------------
-zenplot(olive2, n2dcols = 6, plot1d = "layout", plot2d = "layout",
+zenplot(olive2, n2dcols = 6, plot1d = "arrow", plot2d = "layout",
         method = "rectangular")
 
 ## ---- fig.align = "center", fig.width = 6, fig.height = 10---------------
@@ -74,7 +74,7 @@ zenplot(olive, plot1d = "layout", plot2d = "layout", n2dcol = 4, n2dplots = 8,
 ## ---- eval = FALSE-------------------------------------------------------
 #  function (x, pairs = NULL,
 #            method = c("front.loaded", "back.loaded", "balanced",
-#                       "eulerian.cross", "eulerian.weighted", "strictly.weighted"),
+#                       "eulerian.cross", "greedy.weighted", "strictly.weighted"),
 #            decreasing = TRUE)
 
 ## ------------------------------------------------------------------------
@@ -88,39 +88,39 @@ zenpath(c(3,5), method = "eulerian.cross")
 ## ---- fig.align = "center", fig.width = 6, fig.height = 9----------------
 oliveAcids <- olive[, !names(olive) %in% c("area", "region")] # acids only
 zpath <- zenpath(ncol(oliveAcids)) # all pairs
-zenplot(as.matrix(oliveAcids)[, zpath], plot1d = "hist", plot2d = "density")
+zenplot(oliveAcids[, zpath], plot1d = "hist", plot2d = "density")
 
-## ---- fig.align = "center", fig.width = 8, fig.height = 7.2--------------
-path <- c(1,2,3,1,4,2,5,1,6,2,7,1,8,2,3,4,5,3,6,4,7,3,8,4,5,6,7,5,8,6,7,8)
-turns <- c("l",
-           "d","d","r","r","d","d","r","r","u","u","r","r","u","u","r","r",
-           "u","u","l","l","u","u","l","l","u","u","l","l","d","d","l","l",
-           "u","u","l","l","d","d","l","l","d","d","l","l","d","d","r","r",
-           "d","d","r","r","d","d","r","r","d","d","r","r","d","d")
-
-library(ggplot2) # for ggplot2-based 2d plots
-stopifnot(packageVersion("ggplot2") >= "2.2.1") # need 2.2.1 or higher
-ggplot2d <- function(zargs) { # define the 2d plot function
-               r <- extract_2d(zargs) # extract results from zargs
-               num2d <- zargs$num/2 # plot number of 2d plots
-               df <- data.frame(x = as.numeric(r$x), y = as.numeric(r$y))
-               p <- ggplot() +
-                 geom_point(data = df, aes(x = x, y = y), cex = 0.1) +
-                 theme(axis.line = element_blank(),
-                       axis.ticks = element_blank(),
-                       axis.text.x = element_blank(),
-                       axis.text.y = element_blank(),
-                       axis.title.x = element_blank(),
-                       axis.title.y = element_blank())
-               if(num2d == 1) p <- p +
-                 theme(panel.background = element_rect(fill = 'royalblue3'))
-               if(num2d == (length(zargs$turns)-1)/2) p <- p +
-                 theme(panel.background = element_rect(fill = 'maroon3'))
-               ggplot_gtable(ggplot_build(p))
-}
-
-zenplot(as.matrix(oliveAcids)[,path], turns = turns, pkg = "grid",
-        plot2d = function(zargs) ggplot2d(zargs))
+## ---- fig.align = "center", fig.width = 8, fig.height = 7.2, eval = FALSE----
+#  path <- c(1,2,3,1,4,2,5,1,6,2,7,1,8,2,3,4,5,3,6,4,7,3,8,4,5,6,7,5,8,6,7,8)
+#  turns <- c("l",
+#             "d","d","r","r","d","d","r","r","u","u","r","r","u","u","r","r",
+#             "u","u","l","l","u","u","l","l","u","u","l","l","d","d","l","l",
+#             "u","u","l","l","d","d","l","l","d","d","l","l","d","d","r","r",
+#             "d","d","r","r","d","d","r","r","d","d","r","r","d","d")
+#  
+#  library(ggplot2) # for ggplot2-based 2d plots
+#  stopifnot(packageVersion("ggplot2") >= "2.2.1") # need 2.2.1 or higher
+#  ggplot2d <- function(zargs) {
+#    r <- extract_2d(zargs)
+#    num2d <- zargs$num/2
+#    df <- data.frame(x = unlist(r$x), y = unlist(r$y))
+#    p <- ggplot() +
+#      geom_point(data = df, aes(x = x, y = y), cex = 0.1) +
+#      theme(axis.line = element_blank(),
+#            axis.ticks = element_blank(),
+#            axis.text.x = element_blank(),
+#            axis.text.y = element_blank(),
+#            axis.title.x = element_blank(),
+#            axis.title.y = element_blank())
+#    if(num2d == 1) p <- p +
+#      theme(panel.background = element_rect(fill = 'royalblue3'))
+#    if(num2d == (length(zargs$turns)-1)/2) p <- p +
+#      theme(panel.background = element_rect(fill = 'maroon3'))
+#    ggplot_gtable(ggplot_build(p))
+#  }
+#  
+#  zenplot(as.matrix(oliveAcids)[,path], turns = turns, pkg = "grid",
+#          plot2d = function(zargs) ggplot2d(zargs))
 
 ## ------------------------------------------------------------------------
 oliveAcids.by.area <- split(oliveAcids, f = olive$area)
@@ -133,10 +133,11 @@ zenplot(oliveAcids.by.area, labs = list(group = NULL))
 
 ## ---- fig.align = "center", fig.width = 6, fig.height = 8----------------
 zenplot(oliveAcids.by.area, lim = "groupwise", labs = list(sep = " - "),
-        plot1d = function(zargs) label_1d_graphics(zargs, cex = 0.8))
+        plot1d = function(zargs) label_1d_graphics(zargs, cex = 0.8),
+        plot2d = function(zargs)
+            points_2d_graphics(zargs, group... = list(sep = "\n - \n")))
 
-
-## ------------------------------------------------------------------------
+## ---- message = FALSE----------------------------------------------------
 library(scagnostics)
 Y <- scagnostics(oliveAcids) # compute scagnostics (scatter-plot diagonstics)
 X <- Y["Convex",] # pick out component 'convex'
@@ -161,7 +162,7 @@ plot(graph_pairs(ezpath)) # depict the six most convex pairs (edge = pair)
 (cezpath <- connect_pairs(ezpath)) # keep the same order but connect the pairs
 
 ## ------------------------------------------------------------------------
-oliveAcids.grouped <- group(oliveAcids, indices = cezpath) # group data for (zen)plotting
+oliveAcids.grouped <- groupData(oliveAcids, indices = cezpath) # group data for (zen)plotting
 
 ## ---- fig.align = "center", fig.width = 6, fig.height = 8----------------
 zenplot(oliveAcids.grouped)

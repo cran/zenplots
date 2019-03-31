@@ -16,7 +16,7 @@ importFrom("PairViz", # also tricky to install
            "eseq", "hpaths", "eulerian", "bipartite_graph")
 importFrom("grDevices", "colorRampPalette", "contourLines", "hcl", "xy.coords")
 importFrom("stats", "density", "qnorm", "quantile", "runif", "na.omit", "as.dist",
-           "median")
+           "median", "qqplot", "approx")
 importFrom("methods", "hasArg")
 importFrom("utils", "head", "tail")
 
@@ -27,9 +27,10 @@ export(## General functions
        ## Plotting related functions (see zenplot.R)
        "zenplot", "unfold",
        ## Path related functions (see zenpath.R)
-       "zenpath", "extract_pairs", "connect_pairs", "graph_pairs", "group",
+       "zenpath", "extract_pairs", "connect_pairs", "graph_pairs", "groupData",
+       "indexData",
        ## General tools to write your own plot1d(), plot2d() (see zentools.R)
-       "plot_indices", "burst", "extract_1d", "extract_2d",
+       "plot_indices", "burst", "extract_1d", "extract_2d", "convert_occupancy",
        ## Graphics tools
        "plot_region",
        ## Grid tools
@@ -53,6 +54,7 @@ export(## General functions
        ## 2d
        "group_2d_graphics",
        "points_2d_graphics",
+       "qq_2d_graphics",
        "density_2d_graphics",
        "axes_2d_graphics",
        "arrow_2d_graphics",
@@ -76,6 +78,7 @@ export(## General functions
        ## 2d
        "group_2d_grid",
        "points_2d_grid",
+       "qq_2d_grid",
        "density_2d_grid",
        "axes_2d_grid",
        "arrow_2d_grid",

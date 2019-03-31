@@ -1,12 +1,11 @@
 Package: zenplots
-Version: 0.0-3
+Version: 0.0-4
 Encoding: UTF-8
 Title: Zigzag Expanded Navigation Plots
 Description: Graphical tools for visualizing high-dimensional data with a path
- of pairs. Note that this requires 'graph' from Bioconductor. Furthermore,
- if you want to use dynamic graphics based on 'loon', you need to have R
- configured with Tcl/Tk support and you need to have 'loon' installed,
- for example, from <https://github.com/waddella/loon>.
+ of pairs. Note that this requires 'graph' from Bioconductor.
+ If you want to use dynamic graphics based on 'loon', you also need to have
+ 'loon' installed, see <https://github.com/waddella/loon>.
 Authors@R: c(person(given = "Marius", family = "Hofert", role = c("aut", "cre"),
                     email = "marius.hofert@uwaterloo.ca"),
              person(given = "Wayne", family = "Oldford", role = "aut",
@@ -16,13 +15,13 @@ Author: Marius Hofert [aut, cre],
 Maintainer: Marius Hofert <marius.hofert@uwaterloo.ca>
 Depends: R (>= 3.4.0)
 Imports: grid, graphics, stats, methods, MASS, graph, PairViz
-Suggests: loon, knitr, Rgraphviz, ADGofTest, copula, Matrix, pcaPP,
-        qqtest, qrmdata, qrmtools, rugarch, zoo, ggplot2, lattice,
-        gridExtra, scagnostics
+Suggests: loon, knitr, rmarkdown, Rgraphviz, ADGofTest, copula, Matrix,
+        pcaPP, qqtest, qrmdata, qrmtools, rugarch, zoo, ggplot2,
+        lattice, gridExtra, scagnostics
 Enhances:
 License: GPL-2 | GPL-3
 NeedsCompilation: yes
-VignetteBuilder: knitr
+VignetteBuilder: knitr, rmarkdown
 Repository: CRAN
-Date/Publication: 2018-02-27 12:44:43 UTC
-Packaged: 2018-02-27 11:52:40 UTC; mhofert
+Date/Publication: 2019-03-31 16:30:03 UTC
+Packaged: 2019-03-31 15:44:57 UTC; mhofert
