@@ -1,6 +1,11 @@
-## ---- message = FALSE----------------------------------------------------
+## ----setup, message = FALSE----------------------------------------------
+# attaching required packages
+library(PairViz)
+library(MASS)
 library(zenplots)
-data(olive)
+
+## ---- message = FALSE----------------------------------------------------
+data(olive, package = "zenplots")
 
 ## ---- fig.align = "center", fig.width = 6, fig.height = 8----------------
 zenplot(olive)
