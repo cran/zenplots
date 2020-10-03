@@ -1,33 +1,33 @@
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 library(zenplots)
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 library(PairViz)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 head(attenu)
 
-## ---- echo=FALSE---------------------------------------------------------
+## ---- echo=FALSE--------------------------------------------------------------
 names(attenu)
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 ## Since attenu has 5 variates, the complete graph has n=5 nodes
 ## and an Euler sequence is given as
 eseq(5)
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 names(attenu)[eseq(5)]
 
-## ---- echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"-------
+## ---- echo=FALSE, message=FALSE, warning=FALSE, fig.align="center"------------
 library(Rgraphviz)
 parOptions <- par(no.readonly = TRUE)
 plot(mk_complete_graph(names(attenu)), "circo")
 par(parOptions)
 
-## ---- message=FALSE, warning=FALSE, fig.align="center"-------------------
+## ---- message=FALSE, warning=FALSE, fig.align="center"------------------------
 zenpath(5)
 
-## ---- message=FALSE, warning=FALSE, fig.align="center"-------------------
+## ---- message=FALSE, warning=FALSE, fig.align="center"------------------------
 ## Back loading ensures all pairs appear latest (back) for
 ## high values of the indices.
 zenpath(5, method = "back.loaded")
@@ -38,7 +38,7 @@ zenpath(5, method = "front.loaded")
 ## indices (Hamiltonian paths -> a Hamiltonian decomposition of the Eulerian)
 zenpath(5, method = "balanced")
 
-## ----zenpath, echo= FALSE, include=FALSE, fig.align="center"-------------
+## ----zenpath, echo= FALSE, include=FALSE, fig.align="center"------------------
 parOptions <- par(mfrow=c(1,3), mar=c(4, 2,2,0),oma=rep(0,4))
 back <- zenpath(15, method = "back.loaded")
 balanced <- zenpath(15, method = "balanced")
@@ -87,7 +87,7 @@ zenplot(attenu[, zenpath(ncol(attenu))])
 ## The directions
 zenplot(attenu[, zenpath(ncol(attenu))], plot2d="arrow")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Access the German election data from zenplots package
 data(de_elect)
 
@@ -101,7 +101,7 @@ data(de_elect)
 ## ---- message=FALSE, warning=FALSE, fig.align="center", fig.width=7, fig.height=7----
 ## pairs(de_elect, oma=rep(0,4), gap=0, pch=".", xaxt="n", yaxt="n",col=adjustcolor("black",0.5))
 
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 Education <- c("School.finishers",
                "School.wo.2nd", "School.2nd",
                "School.Real",  "School.UED")
@@ -117,7 +117,7 @@ EmploymentData <- de_elect[, Employment]
 zenplot(list(Educ= EducationData[, zenpath(ncol(EducationData))],
              Empl= EmploymentData[, zenpath(ncol(EmploymentData))]))
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Grouping variates in the German election data
 Regions <- c("District", "State", "Density")
 PopDist <- c("Men", "Citizens", "Pop.18.25", "Pop.25.35",
