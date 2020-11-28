@@ -1,5 +1,5 @@
-2ec20e66dcf4bffbfee8fb2569fffe1e *DESCRIPTION
-8020a465385a79cc0f49014bb8f3de99 *NAMESPACE
+80a490944a46f89a8ff94108b0c39806 *DESCRIPTION
+0eb629793c5fd7db69f5852f51280e70 *NAMESPACE
 a9b6928fbe5f6b7e1932bd7bcaf9ee9e *R/getlayout.R
 a4eac67a20daaa6197685b1bda3383f4 *R/getpath.R
 3f3a8a5db526806cd5aef438d05c7082 *R/plot1dgraphics.R
@@ -8,10 +8,10 @@ a4eac67a20daaa6197685b1bda3383f4 *R/getpath.R
 9e11bdfd9a6a1c27fe67e255e79c4fa0 *R/plot2dgraphics.R
 34d095c387e8bfd1fd467d3d352dc90a *R/plot2dgrid.R
 b59167d251feac1b726c61e8165f1258 *R/plot2dloon.R
-e2ad3c5fa9c8392282593ed0f0f170a9 *R/tools.R
+750b53ffbe8411e4c9c6cdbb6239af5d *R/tools.R
 85622c8a04817940183c741ae7c55220 *R/zenpath.R
-75bf78583928f57a6f8c37bddb8437ba *R/zenplot.R
-ae6a3b2e7723d76edf48c48385265d42 *R/zenplots.R
+62ed0f8b10e08e23a723cf786f82299a *R/zenplot.R
+87412dccfb12d5b399af6df34a3ab63c *R/zenplots.R
 06675f010aec439db4548f3c52385d64 *README.md
 0c631eafc7f17b4c2a0212788914bb47 *build/vignette.rds
 5b014e089bb8437fd759efb1b443bc24 *data/de_elect.rda
@@ -23,10 +23,10 @@ d073e5e2eb63f1e03c9285fadff9036b *demo/SP500.R
 fc3b2fa7d4d091ed698add78396bbbfb *inst/CITATION
 cb234a1e28b00d615b65769726149643 *inst/doc/intro.R
 222f89b4225b817c24dc6e6487e706b9 *inst/doc/intro.Rmd
-6a6d66a2c3eee4e821c1154232db66d3 *inst/doc/intro.html
+f0cd2abd1fad7d535f93d32f71e9b15f *inst/doc/intro.html
 24faeef208ee06aaf18a831f03b8c113 *inst/doc/selected_features.R
 2bf5ed7b21604df4b967d7e1ac7d9c4d *inst/doc/selected_features.Rmd
-9581f6e919aa3c2bea1c57716f5f98e4 *inst/doc/selected_features.html
+cf9d0e7cc1acbde623551f83d1805451 *inst/doc/selected_features.html
 b2cdf42f024be1df8a8451d48dcc551f *man/adjust_bb.Rd
 b4e8ae443c85f46b0aa55b0b43d558dd *man/arrow_1d_graphics.Rd
 9f2ac979d920467045d60aa2043b07f4 *man/arrow_1d_grid.Rd
@@ -96,6 +96,7 @@ da2391903df234dd2b7cd0f9160a585d *man/n2dcols_aux.Rd
 03c41bfb4495bc4afa7bf14953370657 *man/next_move_tidy.Rd
 e613b7639c13214dc2c246e8694c601c *man/num_cols.Rd
 83291c6394cd9183b3e4434301d686c8 *man/olive.Rd
+a68e1a890913340b045d3dcd818c2858 *man/plot_exists.Rd
 0b19580d27b14087d78b31812ea1b3dc *man/plot_indices.Rd
 dd5f8c8fb5fb3d26c8ac1396e0b8834b *man/plot_region.Rd
 6ff0401a806d6dfdca9df8ac6863af1f *man/points_1d_graphics.Rd
