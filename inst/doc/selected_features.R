@@ -91,7 +91,7 @@ zenpath(5, method = "balanced")
 zenpath(c(3,5), method = "eulerian.cross")
 
 ## ---- fig.align = "center", fig.width = 6, fig.height = 9---------------------
-oliveAcids <- olive[, !names(olive) %in% c("area", "region")] # acids only
+oliveAcids <- olive[, !names(olive) %in% c("Area", "Region")] # acids only
 zpath <- zenpath(ncol(oliveAcids)) # all pairs
 zenplot(oliveAcids[, zpath], plot1d = "hist", plot2d = "density")
 
@@ -128,7 +128,7 @@ zenplot(oliveAcids[, zpath], plot1d = "hist", plot2d = "density")
 #          plot2d = function(zargs) ggplot2d(zargs))
 
 ## -----------------------------------------------------------------------------
-oliveAcids.by.area <- split(oliveAcids, f = olive$area)
+oliveAcids.by.area <- split(oliveAcids, f = olive$Area)
 # Replace the "." by " " in third group's name
 names(oliveAcids.by.area)[3] <- gsub("\\.", " ", names(oliveAcids.by.area)[3])
 names(oliveAcids.by.area)
@@ -147,7 +147,7 @@ library(scagnostics)
 Y <- scagnostics(oliveAcids) # compute scagnostics (scatter-plot diagonstics)
 X <- Y["Convex",] # pick out component 'convex'
 d <- ncol(oliveAcids)
-M <- matrix(, nrow = d, ncol = d) # matrix with all 'convex' scagnostics
+M <- matrix(NA, nrow = d, ncol = d) # matrix with all 'convex' scagnostics
 M[upper.tri(M)] <- X # (i,j)th entry = scagnostic of column pair (i,j) of oliveAcids
 M[lower.tri(M)] <- t(M)[lower.tri(M)] # symmetrize
 round(M, 5)
@@ -161,6 +161,7 @@ head(M[do.call(rbind, zpath)]) # show the largest six 'convexity' measures
 
 ## ---- message = FALSE, fig.align = "center", fig.width = 6, fig.height = 6----
 library(graph)
+library(Rgraphviz)
 plot(graph_pairs(ezpath)) # depict the six most convex pairs (edge = pair)
 
 ## -----------------------------------------------------------------------------
@@ -193,5 +194,10 @@ plot_indices
 
 ## -----------------------------------------------------------------------------
 n2dcols <- ncol(olive) - 1 # number of faces of the hypercube
-stopifnot(identical(res, unfold(nfaces = n2dcols)))
+uf <- unfold(nfaces = n2dcols)
+
+identical(res, uf) #return FALSE
+for(name in names(uf)) {
+   stopifnot(identical(res[[name]], uf[[name]]))
+}
 
