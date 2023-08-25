@@ -1,6 +1,6 @@
-3cda5f33f7a5bedb61bdb6201fd0c1ec *DESCRIPTION
+7572a4be1e3b9a8eae7d4b953bde84b0 *DESCRIPTION
 f1c0ac062ca43017e24a825e6bc77325 *NAMESPACE
-31b289b4c44576e662dd98b49eb3ceef *NEWS.md
+7253e978830cbe7509fd4c5af0482f8f *NEWS.md
 a9b6928fbe5f6b7e1932bd7bcaf9ee9e *R/getlayout.R
 a4eac67a20daaa6197685b1bda3383f4 *R/getpath.R
 5fcdca5d629bcd60d0e2fcbe5ff56ad2 *R/plot1dgraphics.R
@@ -12,9 +12,9 @@ ddd5a7aa6a072c9a666c6cb97b37f118 *R/plot2dloon.R
 324583c816a13039179107da3efcdebc *R/tools.R
 7ec2dad7de606a97bdc2d5e4ded0d850 *R/zenpath.R
 50139d51d65c67f8da83325648e43928 *R/zenplot.R
-7c247c0607a1320a870e7f8f7409fb65 *R/zenplots.R
-06675f010aec439db4548f3c52385d64 *README.md
-d7722266a0f85531ee1ded51155055c1 *build/vignette.rds
+00b5bc42528923f91333ec15d4ae446d *R/zenplots.R
+2b4ed0aab9009369ef7c61f60f5aa9c2 *README.md
+dcc19360390f95389e2fdf2040057e51 *build/vignette.rds
 5b014e089bb8437fd759efb1b443bc24 *data/de_elect.rda
 952b909e04b1ff34e1841c39af77e0ce *data/happiness.rda
 05fa39a7aa4a291f0106a0d5c0f1af5f *data/olive.rda
@@ -24,10 +24,10 @@ d073e5e2eb63f1e03c9285fadff9036b *demo/SP500.R
 fc3b2fa7d4d091ed698add78396bbbfb *inst/CITATION
 cb234a1e28b00d615b65769726149643 *inst/doc/intro.R
 222f89b4225b817c24dc6e6487e706b9 *inst/doc/intro.Rmd
-a30705115cadab1b09f7c27575f68ff9 *inst/doc/intro.html
+ce475c3c02290cb7871727274e8eb0f5 *inst/doc/intro.html
 f337582ed866a29baada58d062e9f225 *inst/doc/selected_features.R
 8a41ee2bae7ca9b64d3845282f52e443 *inst/doc/selected_features.Rmd
-cc4b4fafcb2ab8abbcf3dfc6c68c8c05 *inst/doc/selected_features.html
+4a9040ec6319d167153b0071a8ae9f02 *inst/doc/selected_features.html
 b2cdf42f024be1df8a8451d48dcc551f *man/adjust_bb.Rd
 b4e8ae443c85f46b0aa55b0b43d558dd *man/arrow_1d_graphics.Rd
 9f2ac979d920467045d60aa2043b07f4 *man/arrow_1d_grid.Rd
@@ -52,7 +52,7 @@ cb9512d9a7f1b7a1e352bdd3b2d885f5 *man/density_1d_graphics.Rd
 66bf546e1761aed9c10805b980ad5f97 *man/density_1d_grid.Rd
 b4bd5eb7038979b0dadf56f32d9c6938 *man/density_1d_loon.Rd
 b576b0c4f5e8ad2849c9c37834c34127 *man/density_2d_graphics.Rd
-106a7f5efecfb943d439e5f7e8251be7 *man/density_2d_grid.Rd
+f75fa31d5b7b77184db4c6ace86d63d6 *man/density_2d_grid.Rd
 b2e2e74f00d59fc812b7de341d6f0b32 *man/density_2d_loon.Rd
 ff02b74a67b16c1d0d1da5ad514556f8 *man/extract_1d.Rd
 fdb6500e093caf61fe229178e9009975 *man/extract_2d.Rd
@@ -124,7 +124,7 @@ a23da9897905f5e12ce8c594a6e3c07c *man/unfold.Rd
 c635b623eec4be4fcde7ecff90d1d22c *man/zenarrow.Rd
 ed85b08416d35832b4bade94c2c8f194 *man/zenpath.Rd
 6c64b4642ea47f7137b027dcc8956f1e *man/zenplot.Rd
-ba440984a9e32da326ef2f00090a724a *man/zenplots.Rd
+379f884c5f9655bc1cdf3187493e7769 *man/zenplots.Rd
 82f1030440c346d177276d3e2dd9b87c *src/col_split.c
 257b4a43d9885dba60bd7d1db02c34df *src/col_split.h
 e6be03fb0e4cf685d8051486b9eb74c4 *src/init.c
