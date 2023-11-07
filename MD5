@@ -1,6 +1,6 @@
-7572a4be1e3b9a8eae7d4b953bde84b0 *DESCRIPTION
-f1c0ac062ca43017e24a825e6bc77325 *NAMESPACE
-7253e978830cbe7509fd4c5af0482f8f *NEWS.md
+62d6430b62d449e23f7cae596dc471b2 *DESCRIPTION
+f5ea99e6f0ade17c2b88abf0a99a977a *NAMESPACE
+cbc46c9aa548c6cf5ad5c4fd2c96a64c *NEWS.md
 a9b6928fbe5f6b7e1932bd7bcaf9ee9e *R/getlayout.R
 a4eac67a20daaa6197685b1bda3383f4 *R/getpath.R
 5fcdca5d629bcd60d0e2fcbe5ff56ad2 *R/plot1dgraphics.R
@@ -12,9 +12,9 @@ ddd5a7aa6a072c9a666c6cb97b37f118 *R/plot2dloon.R
 324583c816a13039179107da3efcdebc *R/tools.R
 7ec2dad7de606a97bdc2d5e4ded0d850 *R/zenpath.R
 50139d51d65c67f8da83325648e43928 *R/zenplot.R
-00b5bc42528923f91333ec15d4ae446d *R/zenplots.R
+c285143c02b39b124859f004e54e4094 *R/zenplots.R
 2b4ed0aab9009369ef7c61f60f5aa9c2 *README.md
-dcc19360390f95389e2fdf2040057e51 *build/vignette.rds
+de4d85eac4ec7958a320168471ed6712 *build/vignette.rds
 5b014e089bb8437fd759efb1b443bc24 *data/de_elect.rda
 952b909e04b1ff34e1841c39af77e0ce *data/happiness.rda
 05fa39a7aa4a291f0106a0d5c0f1af5f *data/olive.rda
@@ -24,10 +24,10 @@ d073e5e2eb63f1e03c9285fadff9036b *demo/SP500.R
 fc3b2fa7d4d091ed698add78396bbbfb *inst/CITATION
 cb234a1e28b00d615b65769726149643 *inst/doc/intro.R
 222f89b4225b817c24dc6e6487e706b9 *inst/doc/intro.Rmd
-ce475c3c02290cb7871727274e8eb0f5 *inst/doc/intro.html
+bd83223f160d40ba880dd5b6ee4222a2 *inst/doc/intro.html
 f337582ed866a29baada58d062e9f225 *inst/doc/selected_features.R
 8a41ee2bae7ca9b64d3845282f52e443 *inst/doc/selected_features.Rmd
-4a9040ec6319d167153b0071a8ae9f02 *inst/doc/selected_features.html
+0f248013287ddd97b504bd7f5c95ab06 *inst/doc/selected_features.html
 b2cdf42f024be1df8a8451d48dcc551f *man/adjust_bb.Rd
 b4e8ae443c85f46b0aa55b0b43d558dd *man/arrow_1d_graphics.Rd
 9f2ac979d920467045d60aa2043b07f4 *man/arrow_1d_grid.Rd
